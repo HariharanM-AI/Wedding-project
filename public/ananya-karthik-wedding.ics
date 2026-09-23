@@ -1,0 +1,42 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Ananya and Karthik//Invitation Concept//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:ananya-karthik-mehendi-2027@invitation.example
+DTSTAMP:20260922T145820Z
+DTSTART:20270219T103000Z
+DTEND:20270219T123000Z
+SUMMARY:Ananya and Karthik - Mehendi
+LOCATION:The Garden Courtyard\, Thanjavur
+DESCRIPTION:Sample celebration details from the invitation concept. All times shown locally in your calendar.
+END:VEVENT
+BEGIN:VEVENT
+UID:ananya-karthik-wedding-2027@invitation.example
+DTSTAMP:20260922T145820Z
+DTSTART:20270220T034500Z
+DTEND:20270220T060000Z
+SUMMARY:Ananya and Karthik - Wedding
+LOCATION:The Heritage Courtyard\, Thanjavur
+DESCRIPTION:Sample celebration details from the invitation concept. All times shown locally in your calendar.
+END:VEVENT
+BEGIN:VEVENT
+UID:ananya-karthik-reception-2027@invitation.example
+DTSTAMP:20260922T145820Z
+DTSTART:20270220T130000Z
+DTEND:20270220T163000Z
+SUMMARY:Ananya and Karthik - Reception
+LOCATION:The Celebration Hall\, Thanjavur
+DESCRIPTION:Sample celebration details from the invitation concept. All times shown locally in your calendar.
+END:VEVENT
+BEGIN:VEVENT
+UID:ananya-karthik-sangeet-2027@invitation.example
+DTSTAMP:20260922T145820Z
+DTSTART:20270219T133000Z
+DTEND:20270219T163000Z
+SUMMARY:Ananya and Karthik - Sangeet
+LOCATION:The Celebration Hall\, Thanjavur
+DESCRIPTION:Sample celebration details from the invitation concept.
+END:VEVENT
+END:VCALENDAR
