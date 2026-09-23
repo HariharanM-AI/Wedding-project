@@ -71,7 +71,7 @@
 .countdown>div{transition:transform .35s cubic-bezier(.2,.7,.2,1)}.countdown>div:hover{transform:translateY(-5px)}.countdown>div:hover span{box-shadow:0 10px 24px #b08b4633;border-color:#b08b46}
 .count-digit{animation:countflip .5s cubic-bezier(.2,.7,.2,1)}
 @keyframes countflip{from{transform:perspective(300px) rotateX(-75deg);opacity:.2}to{transform:none;opacity:1}}
-.blessing-controls{position:absolute;top:7%;left:50%;width:min(90%,440px);margin-left:max(-45%,-220px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;opacity:0;padding:16px 22px 14px;background:#fbf1dccc;border:1px solid #c9a86a;border-radius:4px;box-shadow:0 12px 30px #5b3e1a2e;backdrop-filter:blur(3px)}
+.blessing-controls{position:absolute;top:7%;left:50%;width:min(90%,440px);margin-left:max(-45%,-220px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;opacity:0;padding:16px 22px 14px;background:#fbf1dcf2;border:1px solid #c9a86a;border-radius:4px;box-shadow:0 12px 30px #5b3e1a38}
 .blessing-controls>.eyebrow{font-size:10px;letter-spacing:.2em;color:#7f6536}
 .akshantalu-button{background:linear-gradient(135deg,#b3801f,#d9a43a 55%,#a36d17);box-shadow:0 8px 22px #8a5a1240;font-size:14px;padding:12px 22px;animation:blesspulse 2.6s ease-in-out infinite}
 .akshantalu-button span{color:#fff2b8}

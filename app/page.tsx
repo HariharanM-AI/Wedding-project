@@ -147,7 +147,7 @@ export default function WeddingFilm(){
    // The topmost scene that has mostly arrived owns the celebration layer.
    let owner='opening';for(const n of ['opening','gate','events','couple','portrait','venue','blessing','memories','final'])if(active.has(n)&&Math.abs(ys[n])<=50)owner=n;
    stageState.presence=Math.max(0,1-Math.abs(ys[owner]??0)/100);if(stageState.scene!==owner){stageState.scene=owner;dispatchEvent(new Event(SCENE_EVENT));}
-   move('blessing-controls',0,0,1,0,part(p,.49,.515));
+   move('blessing-controls',0,0,1,0,part(p,.47,.49));
    move('opening-title',0,r?0:-part(p,.012,.115)*83,1,0,1-part(p,.055,.11));
    move('opening-temple',0,r?0:85-part(p,0,.235)*225,r?1:.91+part(p,0,.19)*.28);
    move('opening-hint',0,0,1,0,1-part(p,0,.035));
