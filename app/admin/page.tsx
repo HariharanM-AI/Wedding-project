@@ -18,10 +18,7 @@ import {
   ScrollText,
   Compass,
   Users,
-  Search,
-  X,
-  AlertTriangle,
-  Edit3
+  X
 } from "lucide-react";
 import { WeddingData, WeddingEvent, WeddingPhotos } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
@@ -34,6 +31,121 @@ import {
   broadcastWeddingUpdate
 } from "@/lib/wedding-storage";
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+function parseDateParts(dateStr: string) {
+  if (!dateStr) return { day: "", month: "", year: "" };
+
+  const monthMatch = MONTHS.find((m) => new RegExp(`\\b${m}\\b`, "i").test(dateStr));
+  const yearMatch = dateStr.match(/\b(20\d\d)\b/);
+  // Match a day (1-31) that precedes a month or is standalone
+  const dayMatch =
+    dateStr.match(/\b([0-2]?[1-9]|[1-3][01])\b(?=\s+[A-Za-z]+|\s*$)/) ||
+    dateStr.match(/\b([1-9]|[12]\d|3[01])\b/);
+
+  return {
+    day: dayMatch ? String(parseInt(dayMatch[1], 10)) : "",
+    month: monthMatch || "",
+    year: yearMatch ? yearMatch[1] : ""
+  };
+}
+
+function RoyalDatePicker({
+  value,
+  onChange,
+  className
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+}) {
+  const parts = parseDateParts(value);
+  const [day, setDay] = useState(parts.day);
+  const [month, setMonth] = useState(parts.month);
+  const [year, setYear] = useState(parts.year);
+
+  useEffect(() => {
+    const updated = parseDateParts(value);
+    setDay(updated.day);
+    setMonth(updated.month);
+    setYear(updated.year);
+  }, [value]);
+
+  function handleChange(newDay: string, newMonth: string, newYear: string) {
+    setDay(newDay);
+    setMonth(newMonth);
+    setYear(newYear);
+
+    if (newDay && newMonth && newYear) {
+      onChange(`${newDay} ${newMonth} ${newYear}`);
+    } else if (newDay || newMonth || newYear) {
+      const combined = [newDay, newMonth, newYear].filter(Boolean).join(" ");
+      onChange(combined);
+    } else {
+      onChange("");
+    }
+  }
+
+  return (
+    <div className={`grid grid-cols-3 gap-2 ${className || ""}`}>
+      {/* Day Selector */}
+      <select
+        value={day}
+        onChange={(e) => handleChange(e.target.value, month, year)}
+        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+      >
+        <option value="">Day</option>
+        {Array.from({ length: 31 }, (_, i) => String(i + 1)).map((d) => (
+          <option key={d} value={d}>
+            {d}
+          </option>
+        ))}
+      </select>
+
+      {/* Month Selector */}
+      <select
+        value={month}
+        onChange={(e) => handleChange(day, e.target.value, year)}
+        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+      >
+        <option value="">Month</option>
+        {MONTHS.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+
+      {/* Year Selector */}
+      <select
+        value={year}
+        onChange={(e) => handleChange(day, month, e.target.value)}
+        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+      >
+        <option value="">Year</option>
+        {Array.from({ length: 12 }, (_, i) => String(2025 + i)).map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [weddings, setWeddings] = useState<WeddingData[]>([]);
   const [currentWedding, setCurrentWedding] = useState<WeddingData>(defaultWeddingData);
@@ -42,11 +154,11 @@ export default function AdminPage() {
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState<boolean>(false);
+  const [showPastClientsModal, setShowPastClientsModal] = useState<boolean>(false);
+  const [clientToDelete, setClientToDelete] = useState<WeddingData | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<WeddingEvent | null>(null);
   const [newBride, setNewBride] = useState<string>("");
   const [newGroom, setNewGroom] = useState<string>("");
-  const [showPastClientsModal, setShowPastClientsModal] = useState<boolean>(false);
-  const [clientSearchQuery, setClientSearchQuery] = useState<string>("");
-  const [clientToDelete, setClientToDelete] = useState<WeddingData | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<keyof WeddingPhotos | null>(null);
@@ -127,45 +239,54 @@ export default function AdminPage() {
     const slug = `${bride.toLowerCase().replace(/[^a-z0-9]/g, "")}-${groom.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
     const monogram = `${bride.charAt(0).toLowerCase()}&${groom.charAt(0).toLowerCase()}`;
 
-    // Common invitation details kept with royal defaults (editable by owner)
-    // Personal details (dates, venue, city, ceremonies) start clean and empty
     const newWedding: WeddingData = {
+      ...defaultWeddingData,
       slug,
       brideName: bride,
       groomName: groom,
       monogram,
-
-      // Personal details: EMPTY by default so owner fills them in per client
-      weddingDate: "",
       displayDate: "",
+      weddingDate: "",
       locationLine: "",
       city: "",
       venueName: "",
       muhurthamTime: "",
-
-      // Common ceremony & invitation texts: elegant editable defaults matching product
-      blessingEyebrow: "WITH THE BLESSINGS OF OUR FAMILIES",
-      subheading: "ARE GETTING MARRIED",
-      invitationEyebrow: "IN THE PRESENCE OF LOVE & TRADITION",
-      invitationHeading: "You're invited",
-      invitationSubtitle: "Together with our families,\nwe invite you to celebrate the wedding of",
-      invitationQuote: "Two hearts. Two families.\nOne beautiful beginning.",
-      storyIntro: "Under the canopy of sacred temple chants and blooming jasmine, our journey begins.",
-      finalHeading: "Our forever begins with you.",
-      finalSubtext: "Save the auspicious date",
-
-      // Events: EMPTY so the owner adds the client's actual ceremonies
-      events: [],
-
-      // Base visual assets: default template artwork so preview works until photos are uploaded
-      photos: {
-        couplePortrait: "/art/portrait.webp",
-        handsDetail: "/images/hands.webp",
-        carTravel: "/images/car.webp",
-        templeScene: "/art/temple.webp"
-      },
-
-      updatedAt: new Date().toISOString()
+      events: [
+        {
+          id: `event-${Date.now()}-1`,
+          title: "",
+          date: "",
+          time: "",
+          venue: "",
+          copy: defaultWeddingData.events[0]?.copy || "An afternoon of henna, familiar songs, and the people we call home. Come dressed in colour and stay for the laughter.",
+          shortTagline: defaultWeddingData.events[0]?.shortTagline || "A LITTLE COLOUR. A LOT OF JOY.",
+          shortCopy: defaultWeddingData.events[0]?.shortCopy || "Henna, laughter and all the little joys before forever.",
+          image: defaultWeddingData.photos.couplePortrait
+        },
+        {
+          id: `event-${Date.now()}-2`,
+          title: "",
+          date: "",
+          time: "",
+          venue: "",
+          copy: defaultWeddingData.events[1]?.copy || "An evening of music, dancing, and two families becoming one. Bring a favourite song and your happiest dancing shoes.",
+          shortTagline: defaultWeddingData.events[1]?.shortTagline || "OUR FAMILIES. OUR FAVOURITE SONGS.",
+          shortCopy: defaultWeddingData.events[1]?.shortCopy || "A night of music, a little magic, and a whole lot of love.",
+          image: defaultWeddingData.photos.handsDetail
+        },
+        {
+          id: `event-${Date.now()}-3`,
+          title: "",
+          date: "",
+          time: "",
+          venue: "",
+          copy: defaultWeddingData.events[2]?.copy || "With the blessings of our families, join us for our wedding ceremony and a traditional South Indian lunch. Reception follows at 6:30 pm.",
+          shortTagline: defaultWeddingData.events[2]?.shortTagline || "WHERE OUR FOREVER BEGINS",
+          shortCopy: defaultWeddingData.events[2]?.shortCopy || "Sacred rites, timeless traditions, and lifelong promises.",
+          image: defaultWeddingData.photos.templeScene
+        }
+      ],
+      photos: { ...defaultWeddingData.photos }
     };
 
     saveWedding(newWedding).then(() => {
@@ -179,27 +300,17 @@ export default function AdminPage() {
     });
   }
 
-  async function confirmDelete(slug: string) {
+  async function handleDeleteWedding(slug: string) {
     if (slug === defaultWeddingData.slug) {
       alert("The default template cannot be deleted.");
-      setClientToDelete(null);
       return;
     }
     await deleteWedding(slug);
     const remaining = weddings.filter((w) => w.slug !== slug);
     setWeddings(remaining);
-    if (currentWedding.slug === slug) {
-      const next = remaining[0] || defaultWeddingData;
-      setCurrentWedding(next);
-      broadcastWeddingUpdate(next);
-    }
-    setClientToDelete(null);
-    refreshWeddingList();
-  }
-
-  function handleDeleteWedding(slug: string) {
-    const target = weddings.find((w) => w.slug === slug) || currentWedding;
-    setClientToDelete(target);
+    const next = remaining[0] || defaultWeddingData;
+    setCurrentWedding(next);
+    broadcastWeddingUpdate(next);
   }
 
   function triggerUpload(slot: keyof WeddingPhotos) {
@@ -235,10 +346,10 @@ export default function AdminPage() {
       date: "",
       time: "",
       venue: "",
-      copy: "Surrounded by loved ones, timeless rituals, and joyous celebrations.",
-      shortTagline: "AUSPICIOUS CELEBRATION",
-      shortCopy: "Music, blessings, and cherished moments.",
-      image: currentWedding.photos?.couplePortrait || "/art/portrait.webp"
+      copy: "",
+      shortTagline: "",
+      shortCopy: "",
+      image: currentWedding.photos.couplePortrait
     };
     const updatedEvents = [...currentWedding.events, newEvent];
     updateWedding({ events: updatedEvents });
@@ -259,35 +370,6 @@ export default function AdminPage() {
     typeof window !== "undefined"
       ? `${window.location.origin}/w/${currentWedding.slug}`
       : `/w/${currentWedding.slug}`;
-
-  // Sort weddings by most recent
-  const sortedWeddings = [...weddings].sort((a, b) => {
-    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-    return timeB - timeA;
-  });
-
-  // Recent 5 clients for the header dropdown
-  let recentWeddings = sortedWeddings.slice(0, 5);
-  if (currentWedding.slug && !recentWeddings.some((w) => w.slug === currentWedding.slug)) {
-    const currentInList = weddings.find((w) => w.slug === currentWedding.slug);
-    if (currentInList) {
-      recentWeddings = [currentInList, ...recentWeddings.slice(0, 4)];
-    }
-  }
-
-  // Filtered clients for Past Clients modal
-  const filteredClients = sortedWeddings.filter((w) => {
-    if (!clientSearchQuery.trim()) return true;
-    const q = clientSearchQuery.toLowerCase();
-    return (
-      w.brideName.toLowerCase().includes(q) ||
-      w.groomName.toLowerCase().includes(q) ||
-      w.slug.toLowerCase().includes(q) ||
-      (w.city && w.city.toLowerCase().includes(q)) ||
-      (w.venueName && w.venueName.toLowerCase().includes(q))
-    );
-  });
 
   return (
     <div className="min-h-screen w-full bg-[#f6ebda] text-[#55313c] font-sans relative overflow-x-hidden selection:bg-[#ab8644] selection:text-[#fff8e9]">
@@ -338,40 +420,26 @@ export default function AdminPage() {
 
           {/* Action Toolbar - Standardized Height (h-9), Font & Royal Styling */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Recent 5 Clients Dropdown Filter */}
+            {/* Recent 5 Clients Dropdown */}
             <select
               value={currentWedding.slug}
-              onChange={(e) => {
-                if (e.target.value === "__view_all__") {
-                  setShowPastClientsModal(true);
-                } else {
-                  handleSelectWedding(e.target.value);
-                }
-              }}
-              className="h-9 px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs cursor-pointer max-w-[210px] truncate"
-              title="Recent 5 clients"
+              onChange={(e) => handleSelectWedding(e.target.value)}
+              className="h-9 px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs"
             >
-              <optgroup label="Recent Clients (Top 5)">
-                {recentWeddings.map((w) => (
-                  <option key={w.slug} value={w.slug}>
-                    {w.brideName} & {w.groomName}
-                  </option>
-                ))}
-              </optgroup>
-              <option value="__view_all__">✦ View All Past Clients ({weddings.length})...</option>
+              {weddings.slice(0, 5).map((w) => (
+                <option key={w.slug} value={w.slug}>
+                  {w.brideName} & {w.groomName}
+                </option>
+              ))}
             </select>
 
-            {/* Past Clients Button */}
+            {/* Past Clients */}
             <button
               onClick={() => setShowPastClientsModal(true)}
-              className="h-9 px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
-              title="View all past clients"
+              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
             >
               <Users size={14} />
               <span>Past Clients</span>
-              <span className="px-1.5 py-0.5 bg-[#f5e9cf] border border-[#bc965e]/60 rounded-full text-[10px] text-[#775536] font-mono leading-none">
-                {weddings.length}
-              </span>
             </button>
 
             {/* New Wedding */}
@@ -412,17 +480,6 @@ export default function AdminPage() {
               <Save size={14} />
               <span>Save Changes</span>
             </button>
-
-            {/* Delete button if not default */}
-            {currentWedding.slug !== defaultWeddingData.slug && (
-              <button
-                onClick={() => handleDeleteWedding(currentWedding.slug)}
-                className="h-9 px-2.5 text-xs text-rose-800 hover:bg-rose-100/70 rounded-md border border-rose-300 transition-all flex items-center justify-center"
-                title="Delete this wedding project"
-              >
-                <Trash2 size={14} />
-              </button>
-            )}
           </div>
         </div>
 
@@ -486,7 +543,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Bride's Name *
+                      Bride's Name
                     </label>
                     <input
                       type="text"
@@ -498,7 +555,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Groom's Name *
+                      Groom's Name
                     </label>
                     <input
                       type="text"
@@ -532,7 +589,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ blessingEyebrow: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Displayed at the top of the opening temple scene.</p>
                   </div>
 
                   <div>
@@ -545,7 +601,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ subheading: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">E.g., "ARE GETTING MARRIED".</p>
                   </div>
                 </div>
 
@@ -560,7 +615,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ invitationSubtitle: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Appears inside the carved gateway scene.</p>
                   </div>
 
                   <div>
@@ -573,7 +627,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ invitationQuote: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Displayed under the couple's name in the gateway scene.</p>
                   </div>
                 </div>
 
@@ -588,7 +641,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ storyIntro: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Displayed above the gold portrait frame.</p>
                   </div>
 
                   <div>
@@ -601,7 +653,6 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ finalHeading: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Closing romantic declaration (e.g. "Our forever begins with you.")</p>
                   </div>
                 </div>
               </div>
@@ -623,21 +674,17 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Formatted Display Date *
+                      Formatted Display Date
                     </label>
-                    <input
-                      type="text"
+                    <RoyalDatePicker
                       value={currentWedding.displayDate}
-                      onChange={(e) => updateWedding({ displayDate: e.target.value })}
-                      placeholder="e.g. 24 November 2027"
-                      className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                      onChange={(newDate) => updateWedding({ displayDate: newDate })}
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Written across all invitation headings and save-the-date cards.</p>
                   </div>
 
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Exact Countdown Timestamp (ISO Date) *
+                      Exact Countdown Timestamp (ISO Date)
                     </label>
                     <input
                       type="text"
@@ -646,14 +693,13 @@ export default function AdminPage() {
                       placeholder="e.g. 2027-11-24T09:15:00+05:30"
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] font-mono rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-[11px] text-[#82704f] mt-1.5">Powers the real-time Days, Hours, Minutes, and Seconds clock.</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#bc965e]/30">
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Primary Ceremony Venue *
+                      Primary Ceremony Venue
                     </label>
                     <input
                       type="text"
@@ -666,7 +712,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      City & Region *
+                      City & Region
                     </label>
                     <input
                       type="text"
@@ -726,114 +772,92 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-5">
-                  {currentWedding.events.length === 0 ? (
-                    <div className="border-2 border-dashed border-[#bc965e]/50 bg-[#fffaf0]/80 rounded-xl p-8 sm:p-10 text-center space-y-3">
-                      <Calendar className="mx-auto text-[#946f35]/60" size={36} />
-                      <h3 className="font-serif text-xl text-[#55313c]">No Celebrations Added Yet</h3>
-                      <p className="text-xs sm:text-sm text-[#82704f] max-w-md mx-auto">
-                        This client currently has no celebration ceremonies. Click &quot;Add Celebration&quot; above to create ceremonies such as Haldi, Mehendi, Sangeet, Muhurtham, or Reception.
-                      </p>
-                      <button
-                        onClick={handleAddEvent}
-                        className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] rounded-md inline-flex items-center gap-1.5 shadow-sm transition-all font-medium"
-                      >
-                        <Plus size={14} />
-                        <span>Add First Celebration</span>
-                      </button>
-                    </div>
-                  ) : (
-                    currentWedding.events.map((evt, idx) => (
-                      <div
-                        key={evt.id || idx}
-                        className="border border-[#bc965e] bg-[#fffaf0] p-6 rounded-lg relative shadow-xs hover:border-[#946f35] transition-colors"
-                      >
-                        <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#bc965e]/30">
-                          <span className="font-serif text-lg font-semibold text-[#55313c]">
-                            Celebration #{idx + 1}: {evt.title || "Untitled Ceremony"}
-                          </span>
+                  {currentWedding.events.map((evt, idx) => (
+                    <div
+                      key={evt.id || idx}
+                      className="border border-[#bc965e] bg-[#fffaf0] p-6 rounded-lg relative shadow-xs hover:border-[#946f35] transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#bc965e]/30">
+                        <span className="font-serif text-lg font-semibold text-[#55313c]">
+                          Celebration #{idx + 1}: {evt.title || (idx === 0 ? "Mehendi afternoon" : idx === 1 ? "Sangeet evening" : idx === 2 ? "The wedding ceremony" : "Untitled Celebration")}
+                        </span>
+                        {currentWedding.events.length > 1 && (
                           <button
-                            type="button"
-                            onClick={() => handleRemoveEvent(evt.id)}
-                            className="text-xs text-rose-800 hover:text-rose-950 flex items-center gap-1 px-2.5 py-1 rounded hover:bg-rose-100/60 border border-rose-300 transition-colors"
-                            title="Remove this celebration"
+                            onClick={() => setEventToDelete(evt)}
+                            className="text-xs text-rose-800 hover:text-rose-950 flex items-center gap-1 px-2.5 py-1 rounded hover:bg-rose-100/50"
                           >
                             <Trash2 size={13} />
                             <span>Remove</span>
                           </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div>
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Event Title</label>
+                          <input
+                            type="text"
+                            value={evt.title}
+                            onChange={(e) => handleUpdateEvent(idx, "title", e.target.value)}
+                            placeholder={idx === 0 ? "e.g. Mehendi afternoon" : idx === 1 ? "e.g. Sangeet evening" : idx === 2 ? "e.g. The wedding ceremony" : "e.g. Reception"}
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                          />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div>
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Event Title *</label>
-                            <input
-                              type="text"
-                              value={evt.title}
-                              onChange={(e) => handleUpdateEvent(idx, "title", e.target.value)}
-                              placeholder="e.g. Haldi Ceremony / Sangeet / Muhurtham"
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Date</label>
+                          <RoyalDatePicker
+                            value={evt.date}
+                            onChange={(newDate) => handleUpdateEvent(idx, "date", newDate)}
+                          />
+                        </div>
 
-                          <div>
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Date *</label>
-                            <input
-                              type="text"
-                              value={evt.date}
-                              onChange={(e) => handleUpdateEvent(idx, "date", e.target.value)}
-                              placeholder="e.g. 24 November 2027"
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Time</label>
+                          <input
+                            type="text"
+                            value={evt.time}
+                            onChange={(e) => handleUpdateEvent(idx, "time", e.target.value)}
+                            placeholder="e.g. 4:00 pm onwards"
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                          />
+                        </div>
 
-                          <div>
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Time *</label>
-                            <input
-                              type="text"
-                              value={evt.time}
-                              onChange={(e) => handleUpdateEvent(idx, "time", e.target.value)}
-                              placeholder="e.g. 10:00 am onwards"
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Venue Location</label>
+                          <input
+                            type="text"
+                            value={evt.venue}
+                            onChange={(e) => handleUpdateEvent(idx, "venue", e.target.value)}
+                            placeholder="e.g. The Garden Courtyard"
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                          />
+                        </div>
 
-                          <div className="md:col-span-2">
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Venue Location *</label>
-                            <input
-                              type="text"
-                              value={evt.venue}
-                              onChange={(e) => handleUpdateEvent(idx, "venue", e.target.value)}
-                              placeholder="e.g. Temple Courtyard / Banquet Hall"
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Card Tagline</label>
+                          <input
+                            type="text"
+                            value={evt.shortTagline || ""}
+                            onChange={(e) => handleUpdateEvent(idx, "shortTagline", e.target.value)}
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                          />
+                        </div>
 
-                          <div>
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Card Tagline</label>
-                            <input
-                              type="text"
-                              value={evt.shortTagline || ""}
-                              onChange={(e) => handleUpdateEvent(idx, "shortTagline", e.target.value)}
-                              placeholder="e.g. AUSPICIOUS CELEBRATION"
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
-
-                          <div className="md:col-span-3">
-                            <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">
-                              Full Story & Details (Shown in Guest Pop-Up)
-                            </label>
-                            <textarea
-                              rows={2}
-                              value={evt.copy}
-                              onChange={(e) => handleUpdateEvent(idx, "copy", e.target.value)}
-                              placeholder="Surrounded by loved ones, timeless rituals, and joyous celebrations..."
-                              className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                            />
-                          </div>
+                        <div className="md:col-span-3">
+                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">
+                            Full Story & Details (Shown in Guest Pop-Up)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={evt.copy}
+                            onChange={(e) => handleUpdateEvent(idx, "copy", e.target.value)}
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                          />
                         </div>
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -943,14 +967,14 @@ export default function AdminPage() {
           <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
             <div className="border-b border-[#bc965e]/40 pb-3">
               <h3 className="font-serif text-2xl text-[#55313c]">Create New Client Wedding</h3>
-              <p className="text-xs text-[#82704f] mt-1">
+              <p className="text-xs text-[#82704f] mt-1 font-sans">
                 Enter the bride & groom names to generate a new customized invitation and dedicated client URL.
               </p>
             </div>
 
             <div>
               <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                Bride's Name *
+                Bride's Name
               </label>
               <input
                 type="text"
@@ -963,7 +987,7 @@ export default function AdminPage() {
 
             <div>
               <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                Groom's Name *
+                Groom's Name
               </label>
               <input
                 type="text"
@@ -986,7 +1010,7 @@ export default function AdminPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-[#bc965e]/30">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] rounded hover:bg-[#ead7b7]"
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7]"
               >
                 Cancel
               </button>
@@ -1002,195 +1026,176 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* PAST CLIENTS DIRECTORY MODAL */}
+      {/* PAST CLIENTS MODAL */}
       {showPastClientsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl max-w-3xl w-full max-h-[88vh] flex flex-col overflow-hidden animate-scale-up">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-6 border-b border-[#bc965e]/40 bg-[#fffcf4] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#55313c] text-[#fff8e9] flex items-center justify-center border border-[#bc965e] shadow-xs">
-                  <Users size={20} />
-                </div>
-                <div>
-                  <h3 className="font-serif text-xl sm:text-2xl text-[#55313c]">Past Clients Directory</h3>
-                  <p className="text-xs text-[#82704f]">
-                    {weddings.length} {weddings.length === 1 ? "client project" : "client projects"} stored in database
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-2xl w-full rounded-xl shadow-2xl space-y-5 animate-scale-up max-h-[85vh] flex flex-col">
+            <div className="border-b border-[#bc965e]/40 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="font-serif text-2xl text-[#55313c]">Past Clients</h3>
+                <p className="text-xs text-[#82704f] mt-0.5 font-sans">
+                  Manage all client wedding invitations, edit details, or permanently delete projects.
+                </p>
               </div>
               <button
                 onClick={() => setShowPastClientsModal(false)}
-                className="h-8 w-8 rounded-full border border-[#bc965e]/50 hover:bg-[#f5e9cf] flex items-center justify-center text-[#55313c] transition-colors"
-                title="Close"
+                className="p-1.5 text-[#82704f] hover:text-[#55313c] rounded hover:bg-[#f5e9cf]"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Search & Actions Bar */}
-            <div className="px-4 sm:px-6 py-3 border-b border-[#bc965e]/25 bg-[#faf2e2]/60 flex flex-col sm:flex-row gap-3 items-center justify-between">
-              <div className="relative w-full sm:w-80">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#82704f]" />
-                <input
-                  type="text"
-                  value={clientSearchQuery}
-                  onChange={(e) => setClientSearchQuery(e.target.value)}
-                  placeholder="Search bride, groom, city, or date..."
-                  className="w-full pl-9 pr-3 py-1.5 bg-[#fffdf7] border border-[#bc965e] text-xs text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  setShowPastClientsModal(false);
-                  setShowNewModal(true);
-                }}
-                className="h-8 px-3.5 text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] rounded-md flex items-center gap-1.5 shadow-xs whitespace-nowrap self-end sm:self-auto"
-              >
-                <Plus size={13} />
-                <span>+ New Wedding</span>
-              </button>
-            </div>
-
-            {/* Client List */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-3 flex-1">
-              {filteredClients.length === 0 ? (
-                <div className="text-center py-12 text-[#82704f] font-serif space-y-2">
-                  <p className="text-base text-[#55313c]">No client projects found matching &quot;{clientSearchQuery}&quot;</p>
-                  <p className="text-xs">Try searching by bride, groom, or location name.</p>
-                </div>
+            <div className="overflow-y-auto space-y-3 flex-1 pr-1">
+              {weddings.length === 0 ? (
+                <p className="text-sm font-serif text-[#82704f] py-8 text-center">No past clients found.</p>
               ) : (
-                filteredClients.map((client) => {
-                  const isCurrent = client.slug === currentWedding.slug;
-                  return (
-                    <div
-                      key={client.slug}
-                      className={`p-3.5 sm:p-4 rounded-lg border transition-all ${
-                        isCurrent
-                          ? "border-[#bc965e] bg-[#fdf6e9] shadow-xs ring-1 ring-[#bc965e]/50"
-                          : "border-[#bc965e]/40 bg-[#fffaf0] hover:border-[#bc965e] hover:shadow-xs"
-                      } flex flex-col md:flex-row md:items-center justify-between gap-3`}
-                    >
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-serif text-lg font-medium text-[#55313c] truncate">
-                            {client.brideName} & {client.groomName}
-                          </h4>
-                          {isCurrent && (
-                            <span className="px-2 py-0.5 text-[10px] font-serif bg-[#55313c] text-[#fff8e9] rounded-full">
-                              ● Currently Editing
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-[#82704f] flex-wrap">
-                          <span>📅 {client.displayDate || "Date to be set"}</span>
-                          <span>•</span>
-                          <span>📍 {client.city || client.venueName || "Venue to be set"}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2 self-end md:self-auto shrink-0 flex-wrap">
-                        {/* Edit / Switch Button */}
-                        <button
-                          onClick={() => {
-                            handleSelectWedding(client.slug);
-                            setShowPastClientsModal(false);
-                          }}
-                          className={`h-8 px-3 text-xs font-serif rounded flex items-center gap-1.5 transition-all shadow-xs ${
-                            isCurrent
-                              ? "bg-[#55313c] text-[#fff8e9] hover:bg-[#7d4954]"
-                              : "bg-[#946f35] text-[#fff7df] hover:bg-[#765426]"
-                          }`}
-                          title="Open this wedding in Studio editor"
-                        >
-                          <Edit3 size={13} />
-                          <span>{isCurrent ? "Editing" : "Edit Project"}</span>
-                        </button>
-
-                        {/* Open Invitation Link */}
+                weddings.map((w) => (
+                  <div
+                    key={w.slug}
+                    className={`p-4 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      currentWedding.slug === w.slug
+                        ? "border-[#946f35] bg-[#fbf5e7] shadow-xs"
+                        : "border-[#bc965e]/50 bg-[#fffaf0] hover:border-[#bc965e]"
+                    }`}
+                  >
+                    <div>
+                      <h4 className="font-serif text-base font-semibold text-[#55313c]">
+                        {w.brideName} & {w.groomName}
+                        {currentWedding.slug === w.slug && (
+                          <span className="ml-2 text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df]">
+                            Active
+                          </span>
+                        )}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#82704f] mt-1 font-serif">
+                        <span>{w.displayDate || "No date set"}</span>
+                        <span>•</span>
+                        <span>{w.city || w.venueName || "No venue set"}</span>
+                        <span>•</span>
                         <a
-                          href={`/w/${client.slug}`}
+                          href={`/w/${w.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="h-8 px-2.5 text-xs font-serif border border-[#bc965e] bg-[#fffdf7] hover:bg-[#f6ebd8] text-[#55313c] rounded flex items-center gap-1 transition-all"
-                          title="View live invitation in new tab"
+                          className="text-[#946f35] hover:underline flex items-center gap-1 font-mono text-[11px]"
                         >
-                          <ExternalLink size={13} />
-                          <span className="hidden sm:inline">Preview</span>
+                          <span>/w/{w.slug}</span>
+                          <ExternalLink size={10} />
                         </a>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => setClientToDelete(client)}
-                          className="h-8 px-2.5 text-xs text-rose-800 hover:text-rose-950 hover:bg-rose-100/70 border border-rose-300 rounded flex items-center gap-1 transition-all"
-                          title="Delete this client project"
-                        >
-                          <Trash2 size={13} />
-                          <span className="hidden sm:inline">Delete</span>
-                        </button>
                       </div>
                     </div>
-                  );
-                })
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => {
+                          handleSelectWedding(w.slug);
+                          setShowPastClientsModal(false);
+                        }}
+                        className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all"
+                      >
+                        Edit Project
+                      </button>
+                      {w.slug !== defaultWeddingData.slug && (
+                        <button
+                          onClick={() => setClientToDelete(w)}
+                          className="p-1.5 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all"
+                          title="Delete permanently"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-[#bc965e]/30 bg-[#faf2e2]/40 flex justify-end">
+            <div className="flex justify-end pt-3 border-t border-[#bc965e]/30">
               <button
                 onClick={() => setShowPastClientsModal(false)}
-                className="px-5 py-2 text-xs font-serif border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] rounded-md transition-all font-medium"
+                className="px-5 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7]"
               >
-                Close Directory
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* PERMANENT DELETE CONFIRMATION MODAL */}
+      {/* PERMANENT CLIENT DELETION CONFIRMATION MODAL */}
       {clientToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#fffdf7] border-2 border-rose-300 p-6 sm:p-7 max-w-md w-full rounded-xl shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center gap-3 text-rose-800 border-b border-rose-200 pb-3">
-              <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                <AlertTriangle size={22} className="text-rose-700" />
-              </div>
-              <div>
-                <h3 className="font-serif text-xl font-semibold text-rose-900">
-                  Permanently Delete Project?
-                </h3>
-                <p className="text-xs text-[#82704f]">Action cannot be undone</p>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+            <div className="border-b border-[#bc965e]/40 pb-3">
+              <h3 className="font-serif text-2xl text-[#55313c]">Delete Client Project</h3>
+              <p className="text-xs text-[#82704f] mt-1 font-sans">
+                Are you sure you want to permanently delete this wedding project? All invitations and data for this client will be removed. This action cannot be undone.
+              </p>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#55313c] leading-relaxed">
-              Are you sure you want to permanently delete the wedding project for{" "}
-              <strong className="font-serif text-base text-[#55313c]">
-                {clientToDelete.brideName} & {clientToDelete.groomName}
-              </strong>
-              ?
-            </p>
-            <p className="text-xs text-[#82704f] bg-rose-50 border border-rose-200 p-2.5 rounded">
-              All saved details and the live client link{" "}
-              <code className="font-mono text-rose-800 font-semibold">/w/{clientToDelete.slug}</code> will be
-              erased permanently from cloud database and storage.
-            </p>
+            <div className="p-3 bg-[#fbf5e7] border border-[#bc965e]/40 rounded text-xs font-serif text-[#55313c]">
+              Client: <span className="font-medium">{clientToDelete.brideName} & {clientToDelete.groomName}</span>
+            </div>
 
             <div className="flex justify-end gap-3 pt-3 border-t border-[#bc965e]/30">
               <button
                 onClick={() => setClientToDelete(null)}
-                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] rounded hover:bg-[#ead7b7] text-[#55313c]"
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7]"
               >
                 Cancel
               </button>
               <button
-                onClick={() => confirmDelete(clientToDelete.slug)}
-                className="px-5 py-2 text-xs font-serif bg-rose-800 hover:bg-rose-900 text-white rounded font-medium shadow-sm transition-all"
+                onClick={async () => {
+                  const slug = clientToDelete.slug;
+                  setClientToDelete(null);
+                  await deleteWedding(slug);
+                  const remaining = weddings.filter((w) => w.slug !== slug);
+                  setWeddings(remaining);
+                  if (currentWedding.slug === slug) {
+                    const next = remaining[0] || defaultWeddingData;
+                    setCurrentWedding(next);
+                    broadcastWeddingUpdate(next);
+                  }
+                }}
+                className="px-5 py-2 text-xs font-serif bg-rose-800 text-white rounded hover:bg-rose-900 font-medium"
               >
-                Yes, Permanently Delete
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CELEBRATION REMOVAL CONFIRMATION MODAL */}
+      {eventToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+            <div className="border-b border-[#bc965e]/40 pb-3">
+              <h3 className="font-serif text-2xl text-[#55313c]">Remove Celebration Event</h3>
+              <p className="text-xs text-[#82704f] mt-1 font-sans">
+                Are you sure you want to permanently remove this celebration event from the wedding timeline? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#fbf5e7] border border-[#bc965e]/40 rounded text-xs font-serif text-[#55313c]">
+              Event: <span className="font-medium">{eventToDelete.title || "Untitled Celebration"}</span>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#bc965e]/30">
+              <button
+                onClick={() => setEventToDelete(null)}
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const updatedEvents = currentWedding.events.filter((e) => e.id !== eventToDelete.id);
+                  updateWedding({ events: updatedEvents });
+                  setEventToDelete(null);
+                }}
+                className="px-5 py-2 text-xs font-serif bg-[#55313c] text-[#fff3d7] rounded hover:bg-[#7d4954] font-medium"
+              >
+                Remove Event
               </button>
             </div>
           </div>
