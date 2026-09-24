@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { ArrowDown, CalendarDays, ArrowUpRight, Edit, MapPin } from "lucide-react";
+import { ArrowDown, CalendarDays, ArrowUpRight, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Celebration, stageState, SCENE_EVENT, SHOWER_EVENT, BLESSED_EVENT } from "@/app/celebration";
 import { WeddingData } from "@/lib/types/wedding";
@@ -762,7 +762,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
   return (
     <div ref={root} id="invitation-top" className={`invitation-film ${ready ? "ready" : ""} ${reduced ? "reduced" : ""}`}>
       <div className="film-loader" aria-hidden={ready}>
-        <span className="loader-monogram">{data.monogram || "a&k"}</span>
+        <span className="loader-monogram">{(data.monogram || "S&J").toUpperCase()}</span>
         <div />
         <span className="eyebrow">UNFOLDING OUR STORY</span>
       </div>
@@ -772,17 +772,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
       <div className="scroll-track" aria-hidden="true" />
 
       <a className="film-monogram" href="#invitation-top" aria-label="Return to the beginning">
-        {data.monogram || "a&k"}
-      </a>
-
-      {/* Floating Admin Button for Quick Access */}
-      <a
-        href={`/admin?edit=${data.slug}`}
-        className="fixed bottom-4 left-4 z-40 px-3 py-1.5 bg-[#55313c]/95 text-[#f5e9cf] border border-[#d4af37] text-xs font-serif rounded shadow-lg backdrop-blur hover:bg-[#3d0c1e] transition-all flex items-center gap-1.5 opacity-60 hover:opacity-100"
-        title="Open Admin to customize this wedding"
-      >
-        <Edit size={13} className="text-[#d4af37]" />
-        <span>Customize</span>
+        {(data.monogram || "S&J").toUpperCase()}
       </a>
 
       <Dialog

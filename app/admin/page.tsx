@@ -219,8 +219,10 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
   if (!weddingDate && w.displayDate) {
     weddingDate = generateIsoTimestamp(w.displayDate, w.muhurthamTime) || "";
   }
+  const monogram = (w.monogram || "").toUpperCase();
   return {
     ...w,
+    monogram,
     weddingDate,
     events: cleanEvents
   };
@@ -329,7 +331,7 @@ export default function AdminPage() {
     const bride = newBride.trim();
     const groom = newGroom.trim();
     const slug = `${bride.toLowerCase().replace(/[^a-z0-9]/g, "")}-${groom.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-    const monogram = `${bride.charAt(0).toLowerCase()}&${groom.charAt(0).toLowerCase()}`;
+    const monogram = `${bride.charAt(0).toUpperCase()}&${groom.charAt(0).toUpperCase()}`;
 
     const newWedding: WeddingData = {
       ...defaultWeddingData,
@@ -518,14 +520,14 @@ export default function AdminPage() {
               {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
-                src="/Hari_WEDDING_project_logo_final.png"
+                src="/Hari_WEDDING_project_logo.png"
                 alt="Hari Wedding Project Logo"
                 className="w-full h-full object-contain scale-[1.2] filter drop-shadow-[0_2px_8px_rgba(188,150,94,0.45)] brightness-[1.06] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.26]"
               />
             </div>
             <div>
               <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#55313c] tracking-tight">
-                Royal Wedding Planner Studio
+                Royal Wedding Invitation Planner Studio
               </h1>
               <p className="text-xs sm:text-sm text-[#82704f] mt-0.5">
                 Client Project:{" "}
@@ -688,13 +690,14 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Monogram Initials (e.g. a&k)
+                      Monogram Initials (e.g. A&K)
                     </label>
                     <input
                       type="text"
-                      value={currentWedding.monogram}
-                      onChange={(e) => updateWedding({ monogram: e.target.value })}
-                      className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                      value={currentWedding.monogram?.toUpperCase() || ""}
+                      onChange={(e) => updateWedding({ monogram: e.target.value.toUpperCase() })}
+                      placeholder="S&J"
+                      className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded uppercase focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
                   </div>
                 </div>
