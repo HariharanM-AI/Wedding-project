@@ -178,7 +178,22 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
         slug: wedding.slug,
         bride_name: wedding.brideName,
         groom_name: wedding.groomName,
-        wedding_date: wedding.weddingDate,
+        monogram: wedding.monogram || "",
+        wedding_date: wedding.weddingDate || "",
+        display_date: wedding.displayDate || "",
+        muhurtham_time: wedding.muhurthamTime || "",
+        venue_name: wedding.venueName || "",
+        city: wedding.city || "",
+        location_line: wedding.locationLine || "",
+        blessing_eyebrow: wedding.blessingEyebrow || "",
+        subheading: wedding.subheading || "",
+        invitation_eyebrow: wedding.invitationEyebrow || "",
+        invitation_heading: wedding.invitationHeading || "",
+        invitation_subtitle: wedding.invitationSubtitle || "",
+        invitation_quote: wedding.invitationQuote || "",
+        story_intro: wedding.storyIntro || "",
+        final_heading: wedding.finalHeading || "",
+        final_subtext: wedding.finalSubtext || "",
         data: wedding,
         updated_at: wedding.updatedAt
       },
@@ -188,6 +203,47 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
     if (error) {
       console.error("Supabase upsert error:", error);
       return { success: false, error: error.message };
+    }
+
+    // Sync wedding_events table so all celebrations are visible row-by-row in Supabase
+    if (wedding.events && Array.isArray(wedding.events)) {
+      try {
+        await supabase.from("wedding_events").delete().eq("wedding_slug", wedding.slug);
+        if (wedding.events.length > 0) {
+          const eventRows = wedding.events.map((e, idx) => ({
+            wedding_slug: wedding.slug,
+            event_id: e.id || `event-${idx + 1}`,
+            title: e.title || "Untitled Celebration",
+            date: e.date || "",
+            time: e.time || "",
+            venue: e.venue || "",
+            short_tagline: e.shortTagline || "",
+            copy: e.copy || "",
+            image_url: e.image || "",
+            display_order: idx + 1
+          }));
+          await supabase.from("wedding_events").insert(eventRows);
+        }
+      } catch (evtErr) {
+        console.warn("Failed to sync wedding_events to Supabase:", evtErr);
+      }
+    }
+
+    // Sync wedding_photos table so all uploaded assets are visible row-by-row in Supabase
+    if (wedding.photos && typeof wedding.photos === "object") {
+      try {
+        const photoEntries = Object.entries(wedding.photos).filter(([_, url]) => Boolean(url));
+        if (photoEntries.length > 0) {
+          const photoRows = photoEntries.map(([slotName, url]) => ({
+            wedding_slug: wedding.slug,
+            slot_name: slotName,
+            photo_url: String(url)
+          }));
+          await supabase.from("wedding_photos").upsert(photoRows, { onConflict: "wedding_slug,slot_name" });
+        }
+      } catch (photoErr) {
+        console.warn("Failed to sync wedding_photos to Supabase:", photoErr);
+      }
     }
 
     return { success: true };
