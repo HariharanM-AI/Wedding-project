@@ -109,7 +109,10 @@ const FilmScenes = memo(function FilmScenes({
   data: WeddingData;
   onDetails: (n: number) => void;
 }) {
-  const events = data.events && data.events.length > 0 ? data.events : defaultWeddingData.events;
+  const rawEvents = data.events && data.events.length > 0 ? data.events : defaultWeddingData.events;
+  const events = (rawEvents || []).filter(
+    (e) => !/the wedding ceremony/i.test(e.title || "") && e.id !== "event-3"
+  );
   const photos = data.photos || defaultWeddingData.photos;
 
   return (
@@ -175,24 +178,36 @@ const FilmScenes = memo(function FilmScenes({
         <img className="event-surround frame-art art" data-layer="event-surround" src="/art/gate.webp" alt="" />
         <p className="events-label eyebrow">LET THE CELEBRATIONS BEGIN</p>
         <div className="event-window" data-layer="event-window" data-tilt="5">
-          <div className="event-reel" data-layer="event-reel">
-            {events.slice(0, 2).map((event, i) => (
-              <article className="event-invitation" key={event.id || event.title}>
+          <div
+            className="event-reel"
+            data-layer="event-reel"
+            style={{ width: `${Math.max(1, events.length) * 100}%` }}
+          >
+            {events.map((event, i) => (
+              <article
+                className="event-invitation"
+                key={event.id || event.title || i}
+                style={{ width: `${100 / Math.max(1, events.length)}%` }}
+              >
                 <div className="event-portrait">
                   <img
-                    src={event.image || (i === 0 ? photos.couplePortrait : photos.handsDetail)}
+                    src={event.image || (i === 0 ? photos.couplePortrait : i === 1 ? photos.handsDetail : photos.templeScene)}
                     alt={event.title}
                   />
                 </div>
                 <div className="event-copy">
-                  <span className="eyebrow">{event.shortTagline || (i === 0 ? "A LITTLE COLOUR. A LOT OF JOY." : "OUR FAMILIES. OUR FAVOURITE SONGS.")}</span>
+                  <span className="eyebrow">
+                    {event.shortTagline || (i === 0 ? "A LITTLE COLOUR. A LOT OF JOY." : i === 1 ? "OUR FAMILIES. OUR FAVOURITE SONGS." : "WHERE OUR CELEBRATION CONTINUES")}
+                  </span>
                   <h2>{event.title}</h2>
                   <p>
                     {event.date}
                     <br />
                     {event.time}
                   </p>
-                  <p className="event-short">{event.shortCopy || (i === 0 ? "Henna, laughter and all the little joys before forever." : "A night of music, a little magic, and a whole lot of love.")}</p>
+                  <p className="event-short">
+                    {event.shortCopy || event.copy || (i === 0 ? "Henna, laughter and all the little joys before forever." : "A night of music, a little magic, and a whole lot of love.")}
+                  </p>
                   <button className="gold-button" onClick={() => onDetails(i)}>
                     The details <ArrowUpRight size={15} />
                   </button>
@@ -202,8 +217,9 @@ const FilmScenes = memo(function FilmScenes({
           </div>
         </div>
         <div className="event-pips">
-          <span data-layer="pip-one" />
-          <span data-layer="pip-two" />
+          {events.map((_, i) => (
+            <span key={i} data-layer={`pip-${i}`} />
+          ))}
         </div>
       </section>
 
@@ -593,14 +609,34 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
       move("event-surround", 0, r ? 0 : 2 - part(p, 0.27, 0.43) * 4);
 
       if (active.has("events")) {
-        const card = ease(part(p, 0.35, 0.385));
-        eventCards.forEach((n, i) => {
-          const inert = i !== (card < 0.5 ? 0 : 1);
-          if (n.inert !== inert) n.inert = inert;
-        });
-        style(nodes["event-reel"], "transform", `translate3d(${(-card * 50).toFixed(4)}%,0,0)`);
-        style(nodes["pip-one"], "opacity", (1 - card * 0.65).toFixed(4));
-        style(nodes["pip-two"], "opacity", (0.35 + card * 0.65).toFixed(4));
+        const numEvents = eventCards.length || 1;
+        if (numEvents <= 1) {
+          style(nodes["event-reel"], "transform", "translate3d(0%,0,0)");
+          if (nodes["pip-0"]) style(nodes["pip-0"], "opacity", "1");
+        } else {
+          const t = part(p, 0.33, 0.405);
+          const continuous = t * (numEvents - 1);
+          const baseIndex = Math.floor(continuous);
+          const frac = continuous - baseIndex;
+          const easedContinuous = baseIndex + ease(frac);
+
+          eventCards.forEach((n, i) => {
+            const inert = Math.abs(easedContinuous - i) > 0.45;
+            if (n.inert !== inert) n.inert = inert;
+          });
+
+          const reelTranslate = -easedContinuous * (100 / numEvents);
+          style(nodes["event-reel"], "transform", `translate3d(${reelTranslate.toFixed(4)}%,0,0)`);
+
+          for (let i = 0; i < numEvents; i++) {
+            const pipNode = nodes[`pip-${i}`];
+            if (pipNode) {
+              const dist = Math.abs(easedContinuous - i);
+              const opacity = Math.max(0.35, 1 - dist * 0.65);
+              style(pipNode, "opacity", opacity.toFixed(4));
+            }
+          }
+        }
       }
 
       move("couple-temple", 0, r ? 0 : 16 - part(p, 0.437, 0.54) * 35, 1 + part(p, 0.44, 0.53) * 0.1);
@@ -704,9 +740,12 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
       document.removeEventListener("visibilitychange", visibility);
       media.removeEventListener("change", changeMotion);
     };
-  }, []);
+  }, [data.events?.length]);
 
-  const activeEvents = data.events && data.events.length > 0 ? data.events : defaultWeddingData.events;
+  const rawActiveEvents = data.events && data.events.length > 0 ? data.events : defaultWeddingData.events;
+  const activeEvents = (rawActiveEvents || []).filter(
+    (e) => !/the wedding ceremony/i.test(e.title || "") && e.id !== "event-3"
+  );
   const currentEvent = event !== null && activeEvents[event] ? activeEvents[event] : null;
 
   return (

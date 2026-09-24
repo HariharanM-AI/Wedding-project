@@ -22,7 +22,7 @@ export const defaultWeddingData: WeddingData = {
   events: [
     {
       id: "event-1",
-      title: "Mehendi afternoon",
+      title: "Mehandhi Afternoon",
       date: "Friday, 19 February 2027",
       time: "4:00 pm onwards",
       venue: "The Garden Courtyard · Thanjavur",
@@ -41,17 +41,6 @@ export const defaultWeddingData: WeddingData = {
       shortTagline: "OUR FAMILIES. OUR FAVOURITE SONGS.",
       shortCopy: "A night of music, a little magic, and a whole lot of love.",
       image: "/images/hands.webp"
-    },
-    {
-      id: "event-3",
-      title: "The wedding ceremony",
-      date: "Saturday, 20 February 2027",
-      time: "9:15 am – 11:30 am · IST",
-      venue: "The Heritage Courtyard · Thanjavur",
-      copy: "With the blessings of our families, join us for our wedding ceremony and a traditional South Indian lunch. Reception follows at 6:30 pm.",
-      shortTagline: "WHERE OUR FOREVER BEGINS",
-      shortCopy: "Sacred rites, timeless traditions, and lifelong promises.",
-      image: "/images/temple.webp"
     }
   ],
   photos: {

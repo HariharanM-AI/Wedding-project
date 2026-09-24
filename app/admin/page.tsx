@@ -66,11 +66,13 @@ function parseDateParts(dateStr: string) {
 function RoyalDatePicker({
   value,
   onChange,
-  className
+  className,
+  variant = "celebration"
 }: {
   value: string;
   onChange: (val: string) => void;
   className?: string;
+  variant?: "venue" | "celebration";
 }) {
   const parts = parseDateParts(value);
   const [day, setDay] = useState(parts.day);
@@ -99,13 +101,18 @@ function RoyalDatePicker({
     }
   }
 
+  const selectClasses =
+    variant === "venue"
+      ? "w-full bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+      : "w-full bg-[#fbf4e6] border border-[#bc965e] px-2 py-1.5 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]";
+
   return (
     <div className={`grid grid-cols-3 gap-2 ${className || ""}`}>
       {/* Day Selector */}
       <select
         value={day}
         onChange={(e) => handleChange(e.target.value, month, year)}
-        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+        className={selectClasses}
       >
         <option value="">Day</option>
         {Array.from({ length: 31 }, (_, i) => String(i + 1)).map((d) => (
@@ -119,7 +126,7 @@ function RoyalDatePicker({
       <select
         value={month}
         onChange={(e) => handleChange(day, e.target.value, year)}
-        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+        className={selectClasses}
       >
         <option value="">Month</option>
         {MONTHS.map((m) => (
@@ -133,7 +140,7 @@ function RoyalDatePicker({
       <select
         value={year}
         onChange={(e) => handleChange(day, month, e.target.value)}
-        className="w-full bg-[#fffaf0] border border-[#bc965e] px-2.5 py-2.5 text-xs font-serif text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+        className={selectClasses}
       >
         <option value="">Year</option>
         {Array.from({ length: 12 }, (_, i) => String(2025 + i)).map((y) => (
@@ -146,15 +153,39 @@ function RoyalDatePicker({
   );
 }
 
+function sanitizeEvents(events: WeddingEvent[]) {
+  return (events || []).filter(
+    (e) => !/the wedding ceremony/i.test(e.title || "") && e.id !== "event-3"
+  );
+}
+
+function sanitizeWeddingData(w: WeddingData): WeddingData {
+  if (!w) return w;
+  const cleanEvents = sanitizeEvents(w.events);
+  // Ensure default titles for first two events if missing
+  if (cleanEvents.length > 0 && !cleanEvents[0].title) {
+    cleanEvents[0] = { ...cleanEvents[0], title: "Mehandhi Afternoon" };
+  }
+  if (cleanEvents.length > 1 && !cleanEvents[1].title) {
+    cleanEvents[1] = { ...cleanEvents[1], title: "Sangeet evening" };
+  }
+  return {
+    ...w,
+    events: cleanEvents
+  };
+}
+
 export default function AdminPage() {
   const [weddings, setWeddings] = useState<WeddingData[]>([]);
-  const [currentWedding, setCurrentWedding] = useState<WeddingData>(defaultWeddingData);
+  const [currentWedding, setCurrentWedding] = useState<WeddingData>(() => sanitizeWeddingData(defaultWeddingData));
   const [activeTab, setActiveTab] = useState<"couple" | "venue" | "events" | "photos">("couple");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState<boolean>(false);
   const [showPastClientsModal, setShowPastClientsModal] = useState<boolean>(false);
+  const [showAddEventModal, setShowAddEventModal] = useState<boolean>(false);
+  const [newEventTitleInput, setNewEventTitleInput] = useState<string>("");
   const [clientToDelete, setClientToDelete] = useState<WeddingData | null>(null);
   const [eventToDelete, setEventToDelete] = useState<WeddingEvent | null>(null);
   const [newBride, setNewBride] = useState<string>("");
@@ -162,6 +193,7 @@ export default function AdminPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<keyof WeddingPhotos | null>(null);
+  const [activeUploadEventId, setActiveUploadEventId] = useState<string | null>(null);
 
   // Initialize wedding list & check ?edit=slug
   useEffect(() => {
@@ -172,7 +204,7 @@ export default function AdminPage() {
       const editSlug = params.get("edit");
       if (editSlug) {
         getWedding(editSlug).then((data) => {
-          if (data) setCurrentWedding(data);
+          if (data) setCurrentWedding(sanitizeWeddingData(data));
         });
       }
     }
@@ -180,9 +212,10 @@ export default function AdminPage() {
 
   async function refreshWeddingList() {
     const list = await listWeddings();
-    setWeddings(list);
-    if (list.length > 0 && !currentWedding.slug) {
-      setCurrentWedding(list[0]);
+    const sanitizedList = list.map(sanitizeWeddingData);
+    setWeddings(sanitizedList);
+    if (sanitizedList.length > 0 && !currentWedding.slug) {
+      setCurrentWedding(sanitizedList[0]);
     }
   }
 
@@ -190,12 +223,14 @@ export default function AdminPage() {
     const found = weddings.find((w) => w.slug === slug);
     if (found) {
       const cloned = JSON.parse(JSON.stringify(found));
-      setCurrentWedding(cloned);
-      broadcastWeddingUpdate(cloned);
+      const sanitized = sanitizeWeddingData(cloned);
+      setCurrentWedding(sanitized);
+      broadcastWeddingUpdate(sanitized);
     } else {
       getWedding(slug).then((w) => {
-        setCurrentWedding(w);
-        broadcastWeddingUpdate(w);
+        const sanitized = sanitizeWeddingData(w);
+        setCurrentWedding(sanitized);
+        broadcastWeddingUpdate(sanitized);
       });
     }
   }
@@ -254,7 +289,7 @@ export default function AdminPage() {
       events: [
         {
           id: `event-${Date.now()}-1`,
-          title: "",
+          title: "Mehandhi Afternoon",
           date: "",
           time: "",
           venue: "",
@@ -265,7 +300,7 @@ export default function AdminPage() {
         },
         {
           id: `event-${Date.now()}-2`,
-          title: "",
+          title: "Sangeet evening",
           date: "",
           time: "",
           venue: "",
@@ -273,17 +308,6 @@ export default function AdminPage() {
           shortTagline: defaultWeddingData.events[1]?.shortTagline || "OUR FAMILIES. OUR FAVOURITE SONGS.",
           shortCopy: defaultWeddingData.events[1]?.shortCopy || "A night of music, a little magic, and a whole lot of love.",
           image: defaultWeddingData.photos.handsDetail
-        },
-        {
-          id: `event-${Date.now()}-3`,
-          title: "",
-          date: "",
-          time: "",
-          venue: "",
-          copy: defaultWeddingData.events[2]?.copy || "With the blessings of our families, join us for our wedding ceremony and a traditional South Indian lunch. Reception follows at 6:30 pm.",
-          shortTagline: defaultWeddingData.events[2]?.shortTagline || "WHERE OUR FOREVER BEGINS",
-          shortCopy: defaultWeddingData.events[2]?.shortCopy || "Sacred rites, timeless traditions, and lifelong promises.",
-          image: defaultWeddingData.photos.templeScene
         }
       ],
       photos: { ...defaultWeddingData.photos }
@@ -315,6 +339,16 @@ export default function AdminPage() {
 
   function triggerUpload(slot: keyof WeddingPhotos) {
     setActiveUploadSlot(slot);
+    setActiveUploadEventId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  }
+
+  function triggerUploadEvent(eventId: string) {
+    setActiveUploadEventId(eventId);
+    setActiveUploadSlot(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
@@ -323,36 +357,63 @@ export default function AdminPage() {
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !activeUploadSlot) return;
+    if (!file) return;
 
-    setUploadingSlot(activeUploadSlot);
-    try {
-      const url = await uploadWeddingPhoto(file, currentWedding.slug, activeUploadSlot);
-      const updatedPhotos = { ...currentWedding.photos, [activeUploadSlot]: url };
-      updateWedding({ photos: updatedPhotos });
-      await saveWedding({ ...currentWedding, photos: updatedPhotos });
-    } catch (err) {
-      alert("Photo upload failed: " + err);
-    } finally {
-      setUploadingSlot(null);
-      setActiveUploadSlot(null);
+    if (activeUploadSlot) {
+      setUploadingSlot(activeUploadSlot);
+      try {
+        const url = await uploadWeddingPhoto(file, currentWedding.slug, activeUploadSlot);
+        const updatedPhotos = { ...currentWedding.photos, [activeUploadSlot]: url };
+        updateWedding({ photos: updatedPhotos });
+        await saveWedding({ ...currentWedding, photos: updatedPhotos });
+      } catch (err) {
+        alert("Photo upload failed: " + err);
+      } finally {
+        setUploadingSlot(null);
+        setActiveUploadSlot(null);
+      }
+    } else if (activeUploadEventId) {
+      setUploadingSlot(activeUploadEventId);
+      try {
+        const url = await uploadWeddingPhoto(file, currentWedding.slug, activeUploadEventId);
+        const updatedEvents = currentWedding.events.map((ev) =>
+          ev.id === activeUploadEventId ? { ...ev, image: url } : ev
+        );
+        updateWedding({ events: updatedEvents });
+        await saveWedding({ ...currentWedding, events: updatedEvents });
+      } catch (err) {
+        alert("Photo upload failed: " + err);
+      } finally {
+        setUploadingSlot(null);
+        setActiveUploadEventId(null);
+      }
     }
   }
 
-  function handleAddEvent() {
+  function handleOpenAddEventModal() {
+    setNewEventTitleInput("");
+    setShowAddEventModal(true);
+  }
+
+  function handleConfirmAddEvent() {
+    const title = newEventTitleInput.trim();
+    if (!title) return;
+
     const newEvent: WeddingEvent = {
       id: `event-${Date.now()}`,
-      title: "",
+      title: title,
       date: "",
       time: "",
       venue: "",
       copy: "",
       shortTagline: "",
       shortCopy: "",
-      image: currentWedding.photos.couplePortrait
+      image: currentWedding.photos.couplePortrait || defaultWeddingData.photos.couplePortrait
     };
     const updatedEvents = [...currentWedding.events, newEvent];
     updateWedding({ events: updatedEvents });
+    setShowAddEventModal(false);
+    setNewEventTitleInput("");
   }
 
   function handleRemoveEvent(id: string) {
@@ -678,6 +739,7 @@ export default function AdminPage() {
                     </label>
                     <RoyalDatePicker
                       value={currentWedding.displayDate}
+                      variant="venue"
                       onChange={(newDate) => updateWedding({ displayDate: newDate })}
                     />
                   </div>
@@ -763,7 +825,7 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <button
-                    onClick={handleAddEvent}
+                    onClick={handleOpenAddEventModal}
                     className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] transition-all rounded flex items-center gap-1.5 shadow-sm w-max"
                   >
                     <Plus size={14} />
@@ -779,7 +841,7 @@ export default function AdminPage() {
                     >
                       <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#bc965e]/30">
                         <span className="font-serif text-lg font-semibold text-[#55313c]">
-                          Celebration #{idx + 1}: {evt.title || (idx === 0 ? "Mehendi afternoon" : idx === 1 ? "Sangeet evening" : idx === 2 ? "The wedding ceremony" : "Untitled Celebration")}
+                          Celebration {idx + 1}: {evt.title || (idx === 0 ? "Mehandhi Afternoon" : idx === 1 ? "Sangeet evening" : "Celebration")}
                         </span>
                         {currentWedding.events.length > 1 && (
                           <button
@@ -799,8 +861,8 @@ export default function AdminPage() {
                             type="text"
                             value={evt.title}
                             onChange={(e) => handleUpdateEvent(idx, "title", e.target.value)}
-                            placeholder={idx === 0 ? "e.g. Mehendi afternoon" : idx === 1 ? "e.g. Sangeet evening" : idx === 2 ? "e.g. The wedding ceremony" : "e.g. Reception"}
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                            placeholder={idx === 0 ? "e.g. Mehandhi Afternoon" : idx === 1 ? "e.g. Sangeet evening" : "e.g. Reception"}
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
@@ -808,6 +870,7 @@ export default function AdminPage() {
                           <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Date</label>
                           <RoyalDatePicker
                             value={evt.date}
+                            variant="celebration"
                             onChange={(newDate) => handleUpdateEvent(idx, "date", newDate)}
                           />
                         </div>
@@ -819,7 +882,7 @@ export default function AdminPage() {
                             value={evt.time}
                             onChange={(e) => handleUpdateEvent(idx, "time", e.target.value)}
                             placeholder="e.g. 4:00 pm onwards"
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
@@ -830,7 +893,7 @@ export default function AdminPage() {
                             value={evt.venue}
                             onChange={(e) => handleUpdateEvent(idx, "venue", e.target.value)}
                             placeholder="e.g. The Garden Courtyard"
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
@@ -840,7 +903,7 @@ export default function AdminPage() {
                             type="text"
                             value={evt.shortTagline || ""}
                             onChange={(e) => handleUpdateEvent(idx, "shortTagline", e.target.value)}
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
@@ -955,6 +1018,89 @@ export default function AdminPage() {
                     );
                   })}
                 </div>
+
+                {/* CELEBRATION & FUNCTION PHOTOGRAPHS */}
+                {currentWedding.events.length > 0 && (
+                  <div className="pt-8 border-t border-[#bc965e]/30 space-y-4">
+                    <div>
+                      <h3 className="font-serif text-xl sm:text-2xl text-[#55313c]">
+                        Celebration & Function Photographs
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[#82704f] mt-1 font-sans">
+                        Photographs displayed on each ceremony card in the client invitation timeline.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {currentWedding.events.map((evt, idx) => {
+                        const fallbackImg =
+                          idx === 0
+                            ? currentWedding.photos.couplePortrait || defaultWeddingData.photos.couplePortrait
+                            : idx === 1
+                            ? currentWedding.photos.handsDetail || defaultWeddingData.photos.handsDetail
+                            : currentWedding.photos.templeScene || defaultWeddingData.photos.templeScene;
+                        const currentImg = evt.image || fallbackImg;
+                        const isUploading = uploadingSlot === evt.id;
+
+                        return (
+                          <div
+                            key={evt.id}
+                            className="border border-[#bc965e] bg-[#fffaf0] p-4 rounded-lg flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow"
+                          >
+                            <div>
+                              <div className="aspect-[3/4] w-full rounded overflow-hidden border border-[#bc965e] mb-3.5 bg-[#e8ce99]/20 relative group">
+                                <img
+                                  src={currentImg}
+                                  alt={evt.title || `Celebration ${idx + 1}`}
+                                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-3 gap-2">
+                                  <button
+                                    onClick={() => triggerUploadEvent(evt.id)}
+                                    className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] rounded shadow hover:bg-[#765426]"
+                                  >
+                                    Replace Photo
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h3 className="font-serif text-base font-semibold text-[#55313c]">
+                                Celebration {idx + 1}: {evt.title || (idx === 0 ? "Mehandhi Afternoon" : idx === 1 ? "Sangeet evening" : "Celebration")}
+                              </h3>
+                              <p className="text-[11px] text-[#82704f] mt-1 font-sans">
+                                Featured on the {evt.title || `Celebration ${idx + 1}`} invitation timeline card
+                              </p>
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-[#bc965e]/30 flex items-center justify-between">
+                              <button
+                                onClick={() => triggerUploadEvent(evt.id)}
+                                disabled={isUploading}
+                                className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] transition-all rounded flex items-center gap-1.5 text-[#55313c]"
+                              >
+                                <Upload size={13} />
+                                <span>{isUploading ? "Uploading..." : "Upload New"}</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  const updatedEvents = currentWedding.events.map((e) =>
+                                    e.id === evt.id ? { ...e, image: fallbackImg } : e
+                                  );
+                                  updateWedding({ events: updatedEvents });
+                                }}
+                                className="text-[11px] text-[#82704f] hover:text-[#55313c] underline"
+                                title="Reset back to default ceremony photo"
+                              >
+                                Reset
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1196,6 +1342,63 @@ export default function AdminPage() {
                 className="px-5 py-2 text-xs font-serif bg-[#55313c] text-[#fff3d7] rounded hover:bg-[#7d4954] font-medium"
               >
                 Remove Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD CELEBRATION MODAL */}
+      {showAddEventModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+            <div className="border-b border-[#bc965e]/40 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="font-serif text-2xl text-[#55313c]">Add New Celebration</h3>
+                <p className="text-xs text-[#82704f] mt-1 font-sans">
+                  Enter the ceremony or celebration title for this timeline event.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddEventModal(false)}
+                className="p-1.5 text-[#82704f] hover:text-[#55313c] rounded hover:bg-[#f5e9cf]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
+                Celebration Title
+              </label>
+              <input
+                type="text"
+                autoFocus
+                value={newEventTitleInput}
+                onChange={(e) => setNewEventTitleInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newEventTitleInput.trim()) {
+                    handleConfirmAddEvent();
+                  }
+                }}
+                placeholder="e.g. Haldi Ceremony or Reception"
+                className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#bc965e]/30">
+              <button
+                onClick={() => setShowAddEventModal(false)}
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAddEvent}
+                disabled={!newEventTitleInput.trim()}
+                className="px-5 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] disabled:opacity-50 rounded font-medium shadow-xs"
+              >
+                Add Celebration
               </button>
             </div>
           </div>
