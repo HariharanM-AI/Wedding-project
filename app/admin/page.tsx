@@ -590,7 +590,7 @@ export default function AdminPage() {
           </div>
 
           {/* Action Toolbar - Perfectly Aligned, Unified Single-Row Bar */}
-          <div className="flex items-center justify-start xl:justify-end gap-1.5 shrink-0 overflow-x-auto no-scrollbar py-0.5 pl-1">
+          <div className="flex items-center justify-start xl:justify-end gap-1.5 shrink-0 py-0.5">
             {/* Recent 5 Edited Projects Dropdown */}
             <select
               value={currentWedding.slug}
@@ -652,7 +652,7 @@ export default function AdminPage() {
             <button
               onClick={handleSave}
               disabled={saveStatus === "Saving..."}
-              className="relative overflow-hidden h-8 px-3.5 sm:px-4 text-[11.5px] sm:text-xs font-serif font-semibold tracking-wide bg-gradient-to-r from-[#7a182d] via-[#5c1322] to-[#7a182d] hover:from-[#942038] hover:via-[#70182b] hover:to-[#942038] text-[#fff6df] border border-[#f3d382] ring-1 ring-[#ffd778]/50 hover:ring-[#ffd778]/90 shadow-[0_2px_8px_rgba(110,24,45,0.35)] hover:shadow-[0_4px_16px_rgba(148,32,56,0.5)] transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.98] group"
+              className="relative overflow-hidden h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-gradient-to-r from-[#7a182d] via-[#5c1322] to-[#7a182d] hover:from-[#942038] hover:via-[#70182b] hover:to-[#942038] text-[#fff6df] border border-[#f3d382] ring-1 ring-[#ffd778]/50 hover:ring-[#ffd778]/90 shadow-xs hover:shadow-md transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group"
               title="Save all changes to Cloud Database & Live Sync"
             >
               {/* Luxury Shimmer Sweep Effect across the button on hover */}
@@ -660,25 +660,21 @@ export default function AdminPage() {
 
               {saveStatus === "Saving..." ? (
                 <>
-                  <Loader2 size={13.5} className="animate-spin text-[#ffd778] relative z-10" />
+                  <Loader2 size={13} className="animate-spin text-[#ffd778] relative z-10" />
                   <span className="relative z-10 text-[#ffd778]">Saving...</span>
                 </>
               ) : saveStatus && saveStatus.startsWith("Saved") ? (
                 <>
-                  <Check size={13.5} className="text-[#6ee7b7] relative z-10 scale-110" />
+                  <Check size={13} className="text-[#6ee7b7] relative z-10 scale-110" />
                   <span className="relative z-10 text-[#d1fae5]">Saved! ✦</span>
                 </>
               ) : (
                 <>
                   <Save
-                    size={13.5}
-                    className="text-[#ffd778] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-[-8deg] transition-transform duration-300 relative z-10"
+                    size={13}
+                    className="text-[#ffd778] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-[-8deg] transition-transform duration-300 relative z-10"
                   />
                   <span className="relative z-10">Save Changes</span>
-                  <Sparkles
-                    size={11}
-                    className="text-[#ffd778] animate-pulse group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_4px_#ffd778] relative z-10"
-                  />
                 </>
               )}
             </button>
