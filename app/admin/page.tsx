@@ -30,6 +30,7 @@ import {
   uploadWeddingPhoto,
   broadcastWeddingUpdate
 } from "@/lib/wedding-storage";
+import { setAdminBranding } from "@/lib/branding";
 
 const MONTHS = [
   "January",
@@ -247,6 +248,7 @@ export default function AdminPage() {
 
   // Initialize wedding list & check ?edit=slug
   useEffect(() => {
+    setAdminBranding();
     refreshWeddingList();
 
     if (typeof window !== "undefined") {

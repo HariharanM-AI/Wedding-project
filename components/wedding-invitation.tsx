@@ -7,6 +7,7 @@ import { Celebration, stageState, SCENE_EVENT, SHOWER_EVENT, BLESSED_EVENT } fro
 import { WeddingData } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
 import { subscribeToWeddingUpdates } from "@/lib/wedding-storage";
+import { setClientBranding } from "@/lib/branding";
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const part = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
@@ -406,6 +407,11 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
     });
     return unsubscribe;
   }, [data.slug]);
+
+  // Dynamically update browser tab title and royal monogram favicon
+  useEffect(() => {
+    setClientBranding(data.brideName, data.groomName, data.monogram);
+  }, [data.brideName, data.groomName, data.monogram]);
 
   useEffect(() => {
     const el = root.current!;

@@ -128,7 +128,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 18px;
+  padding: 9px 18px 5px 18px;
   background: rgba(255, 250, 240, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -179,7 +179,7 @@
   font-family: Cormorant, Georgia, serif;
   font-style: italic;
   letter-spacing: 0.06em;
-  color: #55313c !important;
+  color: #000000 !important;
   margin-top: 10px !important;
   opacity: 0.95 !important;
   text-shadow: 0 1px 3px rgba(255, 250, 240, 0.9), 0 0 8px rgba(255, 250, 240, 0.85);
@@ -192,18 +192,11 @@
   bottom: 2.5%;
   z-index: 3;
   text-align: center;
-  color: #fff4dc;
+  color: #ffffff;
   font-size: 11px;
   letter-spacing: 0.08em;
   padding: 4px 16px;
-  background: rgba(40, 25, 20, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 244, 220, 0.28);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-  animation: hintfade 3s ease-in-out infinite;
-  white-space: nowrap;
+  
 }
 
 @media (max-width: 760px) {
