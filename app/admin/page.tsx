@@ -238,21 +238,21 @@ export default function AdminPage() {
       <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 lg:px-12 py-3.5 shadow-sm">
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-4 sm:gap-5">
-            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-2xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1.5 shadow-lg shadow-[#946f35]/25 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-2 ring-[#bc965e]/40 relative group">
-              {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
+          <div className="flex items-center gap-3.5 sm:gap-4">
+            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl border border-[#bc965e] sm:border-2 bg-gradient-to-br from-[#55313c] via-[#482832] to-[#361922] p-1 shadow-md shadow-[#55313c]/35 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-200 hover:scale-105 relative group">
+              {/* Subtle golden ambient glow in center to illuminate logo brightly */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.3)_0%,_transparent_75%)] pointer-events-none" />
               <img
                 src="/Hari_WEDDING_project_logo_final.png"
                 alt="Hari Wedding Project Logo"
-                className="w-full h-full object-contain scale-[1.32] filter drop-shadow-[0_4px_12px_rgba(188,150,94,0.55)] brightness-[1.08] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.38]"
+                className="w-full h-full object-contain scale-[1.18] filter drop-shadow-[0_2px_8px_rgba(212,175,55,0.65)] brightness-110 contrast-105 relative z-10 transition-transform duration-200 group-hover:scale-[1.24]"
               />
             </div>
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#55313c] tracking-tight">
+              <h1 className="font-serif text-xl sm:text-2xl font-normal text-[#55313c] tracking-tight">
                 Royal Wedding Planner Studio
               </h1>
-              <p className="text-xs sm:text-sm text-[#82704f] mt-0.5">
+              <p className="text-xs text-[#82704f] mt-0.5">
                 Client Project:{" "}
                 <span className="font-serif font-medium text-[#55313c]">
                   {currentWedding.brideName} & {currentWedding.groomName}
