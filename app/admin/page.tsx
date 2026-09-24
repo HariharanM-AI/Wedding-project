@@ -562,11 +562,11 @@ export default function AdminPage() {
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* ROYAL HEADER & ACTION BAR */}
-      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5 shadow-sm">
-        <div className="w-full flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-3.5">
+      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 py-2.5 sm:py-3 shadow-sm">
+        <div className="w-full flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
-            <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
+          <div className="flex items-center gap-3 sm:gap-3.5 shrink-0 min-w-0">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 md:h-13 md:w-13 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
               {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
@@ -575,11 +575,11 @@ export default function AdminPage() {
                 className="w-full h-full object-contain scale-[1.2] filter drop-shadow-[0_2px_8px_rgba(188,150,94,0.45)] brightness-[1.06] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.26]"
               />
             </div>
-            <div>
-              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-normal text-[#55313c] tracking-tight">
+            <div className="min-w-0">
+              <h1 className="font-serif text-lg sm:text-xl md:text-2xl font-normal text-[#55313c] tracking-tight truncate">
                 Royal Wedding Invitation Planner Studio
               </h1>
-              <p className="text-xs sm:text-sm text-[#82704f] mt-0.5">
+              <p className="text-xs text-[#82704f] mt-0.5 truncate">
                 Client Project:{" "}
                 <span className="font-serif font-medium text-[#55313c]">
                   {currentWedding.brideName} & {currentWedding.groomName}
@@ -589,12 +589,12 @@ export default function AdminPage() {
           </div>
 
           {/* Action Toolbar - Perfectly Aligned, Unified Single-Row Bar */}
-          <div className="w-full 2xl:w-auto flex items-center justify-start 2xl:justify-end gap-2 overflow-x-auto no-scrollbar py-1">
+          <div className="flex items-center justify-start xl:justify-end gap-1.5 shrink-0 overflow-x-auto no-scrollbar py-0.5 pl-1">
             {/* Recent 5 Edited Projects Dropdown */}
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="h-9 px-2.5 sm:px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs shrink-0 max-w-[210px] truncate"
+              className="h-8 px-2 sm:px-2.5 bg-[#fffdf7] border border-[#bc965e] text-[11.5px] sm:text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs shrink-0 max-w-[170px] sm:max-w-[190px] truncate cursor-pointer"
               title="Recent 5 Edited Projects"
             >
               {recentWeddings.map((w) => (
@@ -607,28 +607,28 @@ export default function AdminPage() {
             {/* Past Clients */}
             <button
               onClick={() => setShowPastClientsModal(true)}
-              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Users size={14} />
+              <Users size={13} />
               <span>Past Clients</span>
             </button>
 
             {/* New Wedding */}
             <button
               onClick={() => setShowNewModal(true)}
-              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Plus size={14} />
+              <Plus size={13} />
               <span>New Wedding</span>
             </button>
 
             {/* Copy Link */}
             <button
               onClick={handleCopyClientLink}
-              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
               title="Copy shareable client link"
             >
-              {copiedLink ? <Check size={14} className="text-emerald-700" /> : <Copy size={14} />}
+              {copiedLink ? <Check size={13} className="text-emerald-700" /> : <Copy size={13} />}
               <span>{copiedLink ? "Link Copied!" : "Copy Client Link"}</span>
             </button>
 
@@ -637,18 +637,18 @@ export default function AdminPage() {
               href={clientUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <ExternalLink size={14} />
+              <ExternalLink size={13} />
               <span>Open Invitation</span>
             </a>
 
             {/* Save Changes - Positioned above as the LAST button, rightside of Open Invitation */}
             <button
               onClick={handleSave}
-              className="h-9 px-3.5 sm:px-4 text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 px-3 sm:px-3.5 text-[11.5px] sm:text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Save size={14} />
+              <Save size={13} />
               <span>Save Changes</span>
             </button>
           </div>
