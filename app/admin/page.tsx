@@ -507,13 +507,13 @@ export default function AdminPage() {
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
           <div className="flex items-center gap-4 sm:gap-5">
-            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-2xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1.5 shadow-lg shadow-[#946f35]/25 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-2 ring-[#bc965e]/40 relative group">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
               {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
                 src="/Hari_WEDDING_project_logo_final.png"
                 alt="Hari Wedding Project Logo"
-                className="w-full h-full object-contain scale-[1.32] filter drop-shadow-[0_4px_12px_rgba(188,150,94,0.55)] brightness-[1.08] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.38]"
+                className="w-full h-full object-contain scale-[1.2] filter drop-shadow-[0_2px_8px_rgba(188,150,94,0.45)] brightness-[1.06] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.26]"
               />
             </div>
             <div>
