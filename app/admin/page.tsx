@@ -238,19 +238,19 @@ export default function AdminPage() {
       <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 lg:px-12 py-3.5 shadow-sm">
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-3.5">
-            <div className="h-11 w-11 rounded-md border border-[#bc965e]/70 bg-[#fffaf0] p-1 shadow-xs flex items-center justify-center overflow-hidden shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl border-2 border-[#bc965e] bg-white p-1.5 shadow-lg shadow-[#946f35]/25 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-4 ring-[#fffcf4]/80">
               <img
                 src="/logo.png"
                 alt="Hari Wedding Project Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain filter brightness-105 contrast-105 drop-shadow-sm"
               />
             </div>
             <div>
-              <h1 className="font-serif text-xl sm:text-2xl font-normal text-[#55313c] tracking-tight">
+              <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#55313c] tracking-tight">
                 Royal Wedding Planner Studio
               </h1>
-              <p className="text-xs text-[#82704f] mt-0.5">
+              <p className="text-xs sm:text-sm text-[#82704f] mt-0.5">
                 Client Project:{" "}
                 <span className="font-serif font-medium text-[#55313c]">
                   {currentWedding.brideName} & {currentWedding.groomName}
