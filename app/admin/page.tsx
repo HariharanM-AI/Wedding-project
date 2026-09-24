@@ -609,7 +609,7 @@ export default function AdminPage() {
       <main className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6">
         <div className="w-full flex flex-col gap-6">
           {/* TABS SELECTOR */}
-          <div className="w-full flex border-b border-[#bc965e] bg-[#fffcf4]/88 backdrop-blur-md rounded-t-xl px-4 pt-3.5 gap-2 overflow-x-auto shadow-sm">
+          <div className="w-full flex border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-2 gap-2 overflow-x-auto shadow-sm">
             {[
               { id: "couple", label: "Couple & Story", icon: Heart },
               { id: "venue", label: "Muhurtham & Venue", icon: MapPin },
@@ -622,21 +622,24 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2.5 px-7 py-3.5 font-serif text-sm border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
+                  className={`flex items-center gap-2.5 px-6 py-2.5 font-serif text-sm transition-all whitespace-nowrap rounded-lg relative ${
                     isActive
-                      ? "border-[#946f35] text-[#55313c] font-semibold bg-[#f7eedc] shadow-xs"
-                      : "border-transparent text-[#82704f] hover:text-[#55313c] hover:bg-[#fff9ef]/70"
+                      ? "bg-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#946f35]/50 scale-[1.01]"
+                      : "text-[#7c6341] hover:text-[#55313c] hover:bg-[#f6ebd8]/80 border border-transparent font-medium"
                   }`}
                 >
-                  <Icon size={17} className={isActive ? "text-[#946f35]" : "text-[#82704f]"} />
+                  <Icon size={16} className={isActive ? "text-[#dfbe7d]" : "text-[#946f35]"} />
                   <span>{tab.label}</span>
+                  {isActive && (
+                    <span className="w-2 h-2 rounded-full bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5" />
+                  )}
                 </button>
               );
             })}
           </div>
 
           {/* TAB CARD WORKSPACE */}
-          <div className="w-full bg-[#fffdf7]/85 backdrop-blur-md border border-[#bc965e]/80 p-6 sm:p-10 rounded-b-xl shadow-xl">
+          <div className="w-full bg-[#fffdf7]/85 backdrop-blur-md border border-[#bc965e]/80 p-6 sm:p-10 rounded-xl shadow-xl">
 
             {/* TAB 1: COUPLE & STORY */}
             {activeTab === "couple" && (
