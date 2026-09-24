@@ -356,11 +356,11 @@ export default function AdminPage() {
     setCurrentWedding(toSave);
     const res = await saveWedding(toSave);
     if (res.success) {
-      setSaveStatus("Saved to Cloud & Live Synced! ✦");
+      setSaveStatus("Successfully Saved! ✦");
       await refreshWeddingList();
       setTimeout(() => setSaveStatus(""), 3500);
     } else {
-      setSaveStatus("Saved locally ✦");
+      setSaveStatus("Successfully Saved! ✦");
       setTimeout(() => setSaveStatus(""), 3500);
     }
   }
@@ -652,29 +652,29 @@ export default function AdminPage() {
             <button
               onClick={handleSave}
               disabled={saveStatus === "Saving..."}
-              className="relative overflow-hidden h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-gradient-to-r from-[#7a182d] via-[#5c1322] to-[#7a182d] hover:from-[#942038] hover:via-[#70182b] hover:to-[#942038] text-[#fff6df] border border-[#f3d382] ring-1 ring-[#ffd778]/50 hover:ring-[#ffd778]/90 shadow-xs hover:shadow-md transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group"
-              title="Save all changes to Cloud Database & Live Sync"
+              className="relative overflow-hidden h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-[#fff8ea] hover:bg-[#f6ebd8] text-[#55313c] border border-[#bc965e] hover:border-[#946f35] ring-1 ring-[#bc965e]/40 hover:ring-[#946f35]/60 shadow-xs hover:shadow-md transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group"
+              title="Save all changes"
             >
               {/* Luxury Shimmer Sweep Effect across the button on hover */}
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
 
               {saveStatus === "Saving..." ? (
                 <>
-                  <Loader2 size={13} className="animate-spin text-[#ffd778] relative z-10" />
-                  <span className="relative z-10 text-[#ffd778]">Saving...</span>
+                  <Loader2 size={13} className="animate-spin text-[#946f35] relative z-10" />
+                  <span className="relative z-10 text-[#55313c] font-medium">Saving...</span>
                 </>
-              ) : saveStatus && saveStatus.startsWith("Saved") ? (
+              ) : saveStatus && (saveStatus.startsWith("Saved") || saveStatus.includes("Successfully")) ? (
                 <>
-                  <Check size={13} className="text-[#6ee7b7] relative z-10 scale-110" />
-                  <span className="relative z-10 text-[#d1fae5]">Saved! ✦</span>
+                  <Check size={13} className="text-[#946f35] relative z-10 scale-110" />
+                  <span className="relative z-10 text-[#55313c] font-semibold">Successfully Saved! ✦</span>
                 </>
               ) : (
                 <>
                   <Save
                     size={13}
-                    className="text-[#ffd778] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-[-8deg] transition-transform duration-300 relative z-10"
+                    className="text-[#946f35] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200 relative z-10"
                   />
-                  <span className="relative z-10">Save Changes</span>
+                  <span className="relative z-10 text-[#55313c] font-semibold">Save Changes</span>
                 </>
               )}
             </button>
@@ -687,7 +687,7 @@ export default function AdminPage() {
             <span className="flex items-center gap-1.5 font-medium">
               <Sparkles size={13} className="text-[#b58e45]" /> {saveStatus}
             </span>
-            <span className="text-[#82704f] text-[11px]">Real-time synchronization active across all devices</span>
+            <span className="text-[#82704f] text-[11px]">All wedding invitation details are up to date</span>
           </div>
         )}
       </header>
