@@ -5,7 +5,10 @@ import { getSupabaseClient } from "./supabase";
 const LOCAL_STORAGE_KEY = "custom_weddings_data";
 const BROADCAST_CHANNEL_NAME = "wedding_realtime_sync";
 
+let memoryMap: Record<string, WeddingData> | null = null;
+
 function getLocalWeddingsMap(): Record<string, WeddingData> {
+  if (memoryMap) return memoryMap;
   if (typeof window === "undefined") return { [defaultWeddingData.slug]: defaultWeddingData };
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -14,6 +17,7 @@ function getLocalWeddingsMap(): Record<string, WeddingData> {
     if (!parsed[defaultWeddingData.slug]) {
       parsed[defaultWeddingData.slug] = defaultWeddingData;
     }
+    memoryMap = parsed;
     return parsed;
   } catch (e) {
     console.error("Error reading local weddings:", e);
@@ -22,11 +26,12 @@ function getLocalWeddingsMap(): Record<string, WeddingData> {
 }
 
 function saveLocalWeddingsMap(map: Record<string, WeddingData>): void {
+  memoryMap = map;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(map));
   } catch (e) {
-    console.error("Error writing to local storage:", e);
+    console.warn("Storage quota reached for localStorage. Persisting in-memory session.", e);
   }
 }
 
