@@ -80,3 +80,181 @@
 @keyframes blesspulse{0%,100%{box-shadow:0 8px 22px #8a5a1240,0 0 0 0 #d9a43a55}50%{box-shadow:0 8px 22px #8a5a1240,0 0 0 10px #d9a43a00}}
 @keyframes hintfade{0%,100%{opacity:.55}50%{opacity:1}}
 @media(max-width:760px){.blessing-controls{top:11%;gap:8px;padding:12px 14px 11px}.akshantalu-button{font-size:12px;padding:10px 16px}.tap-hint{font-size:11px}}
+
+/* ==========================================================================
+   FINAL SCENE ROYAL DETAILS & VISIBILITY ENHANCEMENTS
+   ========================================================================== */
+
+.final-words {
+  position: absolute;
+  top: 9%;
+  left: 15%;
+  width: 70%;
+  text-align: center;
+  z-index: 2;
+  color: #55313c;
+}
+
+.final-words > .final-eyebrow,
+.final-words > .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: #8c6b3c;
+  display: block;
+}
+
+.final-words h2 {
+  font-size: clamp(48px, 5.2vw, 86px);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  color: var(--wine);
+  margin: 16px 0 14px;
+}
+
+.final-words > .final-names,
+.final-words > p {
+  font: 400 clamp(26px, 2.5vw, 34px) / 1.2 Cormorant, Georgia, serif;
+  margin: 8px 0 12px;
+  color: #55313c;
+}
+
+.final-location-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 10px auto 4px;
+}
+
+.final-location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 18px;
+  background: rgba(255, 250, 240, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #bc965e;
+  border-radius: 9999px;
+  color: #55313c;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(85, 49, 60, 0.1);
+}
+
+.final-save {
+  display: inline-flex !important;
+  width: max-content !important;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 14px auto 0 !important;
+  padding: 10px 24px !important;
+  background: var(--wine) !important;
+  color: #fff7df !important;
+  border: 1px solid #bc965e !important;
+  border-radius: 4px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+  box-shadow: 0 6px 20px rgba(85, 49, 60, 0.28), 0 0 0 1px rgba(188, 150, 94, 0.4);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.final-save:hover {
+  background: #7d4954 !important;
+  border-color: #d9a43a !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(85, 49, 60, 0.38), 0 0 0 1px #d9a43a;
+}
+
+.final-subtext,
+.final-words small {
+  font-size: 12px !important;
+  display: block !important;
+  font-family: Cormorant, Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: #55313c !important;
+  margin-top: 10px !important;
+  opacity: 0.95 !important;
+  text-shadow: 0 1px 3px rgba(255, 250, 240, 0.9), 0 0 8px rgba(255, 250, 240, 0.85);
+}
+
+.final-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 2.5%;
+  z-index: 3;
+  text-align: center;
+  color: #fff4dc;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 4px 16px;
+  background: rgba(40, 25, 20, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 244, 220, 0.28);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  animation: hintfade 3s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .final-words {
+    top: 13%;
+    left: 8%;
+    width: 84%;
+  }
+  .final-words h2 {
+    font-size: 42px;
+    margin: 12px 0 10px;
+  }
+  .final-words > .final-names,
+  .final-words > p {
+    font-size: 24px;
+    margin: 6px 0 8px;
+  }
+  .final-location-badge {
+    font-size: 9px;
+    padding: 4px 12px;
+    letter-spacing: 0.12em;
+  }
+  .final-save {
+    padding: 8px 18px !important;
+    font-size: 11px !important;
+    margin-top: 10px !important;
+  }
+  .final-subtext,
+  .final-words small {
+    font-size: 10px !important;
+    margin-top: 8px !important;
+  }
+  .final-hint {
+    bottom: 2%;
+    font-size: 10px;
+    padding: 3px 12px;
+  }
+}
+
+@media (max-height: 730px) and (min-width: 761px) {
+  .final-words {
+    top: 7%;
+  }
+  .final-words h2 {
+    font-size: 46px;
+    margin: 10px 0;
+  }
+  .final-words > .final-names,
+  .final-words > p {
+    font-size: 24px;
+    margin: 6px 0 8px;
+  }
+}
+

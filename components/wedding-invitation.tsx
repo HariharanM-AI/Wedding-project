@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { ArrowDown, CalendarDays, ArrowUpRight, Edit } from "lucide-react";
+import { ArrowDown, CalendarDays, ArrowUpRight, Edit, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Celebration, stageState, SCENE_EVENT, SHOWER_EVENT, BLESSED_EVENT } from "@/app/celebration";
 import { WeddingData } from "@/lib/types/wedding";
@@ -356,20 +356,25 @@ const FilmScenes = memo(function FilmScenes({
       <section className="film-scene final-scene" data-scene="final" aria-label="The final invitation">
         <img className="final-landscape art" data-layer="final-landscape" src="/art/landscape.webp" alt="An original temple framed by terracotta hills, palms and lotus flowers" />
         <div className="final-words" data-layer="final-words">
-          <span className="eyebrow">TOGETHER IS A BEAUTIFUL PLACE TO BE</span>
+          <span className="eyebrow final-eyebrow">TOGETHER IS A BEAUTIFUL PLACE TO BE</span>
           <h2>
             Our forever
             <br />
             begins <em>with you.</em>
           </h2>
-          <p>
+          <p className="final-names">
             {data.brideName} <em>&</em> {data.groomName}
           </p>
-          <span className="eyebrow">{data.locationLine || `${data.displayDate} · ${data.city}`}</span>
-          <a className="final-save" href="/ananya-karthik-wedding.ics" download>
-            Save the date <CalendarDays size={14} />
+          <div className="final-location-wrap">
+            <span className="final-location-badge">
+              <MapPin size={13} className="text-[#946f35]" />
+              <span>{data.locationLine || `${data.displayDate} · ${data.city}`}</span>
+            </span>
+          </div>
+          <a className="final-save gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+            Save the date <CalendarDays size={15} />
           </a>
-          <small>{data.finalSubtext || `Wedding of ${data.brideName} & ${data.groomName}`}</small>
+          <small className="final-subtext">{data.finalSubtext || `Wedding of ${data.brideName} & ${data.groomName}`}</small>
         </div>
         <p className="tap-hint final-hint" aria-hidden="true">
           Tap anywhere to scatter lotus petals
