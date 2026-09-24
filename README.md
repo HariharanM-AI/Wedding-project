@@ -1,29 +1,143 @@
-# Ananya & Karthik — A Beautiful Beginning
+# Royal Wedding Invitation Planner Studio & Cinematic Wedding Invitation Experience
 
-A scroll-controlled wedding film rendered in a web application. One fixed viewport stage composes nine overlapping scenes from original transparent illustration layers. There is no conventional page-section layout or navigation bar.
+A multi-client wedding invitation platform and scroll-driven cinematic digital invitation experience inspired by royal South Indian heritage and Chola temple architecture.
 
-## Scrolling through the invitation
+---
 
-Scroll or swipe to move forward and backward through the scenes. Normal browser keyboard scrolling (Space, arrows, Page Up/Down, Home/End) remains available. The monogram links back to the opening. The invitation has no video controls, automatic playback, timeline slider or full-screen toggle.
+## ✦ Overview
 
-## Edit the invitation
+This platform consists of two integrated components:
+1. **Royal Wedding Invitation Planner Studio (`/admin`)**: A centralized studio dashboard for wedding planners to create, manage, customize, and sync unique wedding invitations for multiple clients.
+2. **Cinematic Wedding Invitation Film (`/w/[slug]`)**: A responsive, scroll-controlled interactive digital wedding invitation rendered across nine overlapping, hand-choreographed heritage scenes.
 
-Sample names, copy, event details and motion ranges are in `app/page.tsx`. Layout and responsive framing are in `app/globals.css`. Metadata is in `app/layout.tsx`. Update `public/ananya-karthik-wedding.ics` whenever the event details change. Its four event timestamps use UTC, corresponding to IST in the invitation.
+---
 
-Original transparent artwork is under `public/art`; supporting generated photography is in `public/images`. Architecture is an artistic Chola-inspired visualization, not documentary imagery of a named landmark. All names, dates, people and venues are demonstration content.
+## ✦ Key Features
 
-## Development
+### 1. Royal Wedding Invitation Planner Studio (`/admin`)
+- **Multi-Client Project Management**:
+  - Filter dropdown showing the **last 5 recently edited projects** sorted in real-time.
+  - **Past Clients Modal**: View all past client projects, switch active projects, access direct links, and manage projects.
+  - **+ New Wedding Project**: Modal wizard to quickly spin up a new wedding project with custom bride & groom names, slug, and monogram.
+  - **Copy Client Link**: One-click clipboard sharing of direct client URLs (`/w/[slug]`).
+  - **Open Invitation**: Instantly preview the current client invitation in a new browser tab.
+- **4-Tab Studio Workspace**:
+  - **Couple & Story**: Bride & groom names, monogram initials, romantic quote, opening blessing subtext, and closing scene subtext.
+  - **Muhurtham & Venue**: Royal Date Picker, countdown timestamp, ceremony venue, city, Muhurtham timing, location stamp, and full story/ceremony copy.
+  - **Celebrations & Events Timeline**: Add, reorder, edit, or remove ceremonies (Haldi, Mehendi, Sangeet, Muhurtham, Reception) with dates, times, venues, taglines, and pop-up modal descriptions.
+  - **Photos & Media Studio**: Upload high-resolution photos for couple portraits, hands detail, temple scenery, and celebration events.
+- **Live Sync & Instant Feedback**:
+  - Cloud database persistence with **Supabase**.
+  - Real-time `BroadcastChannel` synchronization: any edits made in the admin studio reflect live in any open preview tabs without requiring a page refresh.
+  - Tactile save button with dynamic loading and confirmation states.
 
-React, TypeScript and Vinext. Use the project lockfile when installing dependencies. `pnpm dev` starts development; `pnpm build` creates production output. The managed preview and publishing helpers use `.openai/hosting.json`.
+### 2. Client Invitation Experience (`/w/[slug]`)
+- **Nine Overlapping Cinematic Scenes**:
+  1. **Opening Scene**: Golden dawn atmosphere, animated clouds, fluttering jade-and-gold butterflies, royal temple silhouette, and couple typography.
+  2. **Invitation Gateway**: Sacred family blessings, couple introductions, and ceremonial announcements.
+  3. **Celebrations Timeline**: Interactive card carousel with sideways motion, dedicated event times, venues, and "Full Details" pop-ups.
+  4. **The Sacred Union**: Traditional South Indian attire, temple architecture, and floral garlands.
+  5. **Heritage & Memories**: Golden framed portrait photography with traditional temple procession illustrations.
+  6. **Sacred Muhurtham & Venue**: Dedicated Muhurtham ceremony timings, venue details, and guest information modal.
+  7. **Interactive Blessing Scene**: "Bless The Couple" button triggering falling flower petals, sacred turmeric rice (*akshantalu*), and a live blessing counter.
+  8. **Live Countdown**: Dynamic countdown clock to the auspicious wedding hour and floating memories.
+  9. **Closing Scene**: Auspicious blessings, location stamp, and "Save the Date" calendar export (.ics).
+- **Dynamic Monogram Favicons & Page Titles**:
+  - The browser tab title updates automatically to match the couple: `[Bride] & [Groom] — A Beautiful Beginning`.
+  - Generates custom high-resolution gold canvas monogram favicons (e.g. `R&P`, `S&J`) dynamically for each couple.
 
-## Accessibility
+---
 
-Native scrolling, keyboard-accessible controls, visible focus, meaningful alternatives, focus-trapped event dialogs, and inactive-scene focus protection. Reduced-motion preferences remove entrance travel and scene interpolation. Calendar downloads work without submitting any information.
+## ✦ Technology Stack
 
-See `DESIGN-NOTES.md` for the reference choreography and original artwork direction. Font licenses are included under `public/fonts`.
+- **Framework**: Next.js (App Router), React, TypeScript
+- **Styling**: Tailwind CSS, Vanilla CSS animations
+- **Database & Storage**: Supabase (PostgreSQL `weddings` table and `wedding-photos` storage bucket)
+- **Icons**: Lucide React
+- **Fonts**: Cormorant (headings & serifs), Jost (body & accents)
+- **Local Fallback**: LocalStorage and BroadcastChannel API for offline-first resilience
 
-## Motion refinement
+---
 
-Wheel movement eases into the scene over a 190 ms time constant; touch keeps a shorter 80 ms response and native momentum. Only active and approaching scenes are animated or promoted for compositing. Unchanged style/accessibility values are cached, animation frames stop when the scene settles, and no scroll position is stored in React state. Background tabs suspend animation work. The celebration frame keeps a subtle continuous drift as its cards move sideways.
+## ✦ Getting Started
 
-The opening includes two optimized original raster assets: clouds drifting behind the names and four small jade-and-gold butterflies. Their wings and flight paths animate with transforms. Pointer movement provides a small depth response; touch has a gentle temporary response without blocking scrolling. Independent flutter and drift rest while scrolling, when the whole atmosphere instead follows the scene; they resume when scrolling settles. They also pause outside the intro and respect reduced-motion preferences.
+### 1. Prerequisites
+- Node.js (v18 or higher)
+- `pnpm` (recommended package manager)
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/HariharanM-AI/Wedding-project.git
+
+# Navigate to project directory
+cd Wedding-project
+
+# Install dependencies
+pnpm install
+```
+
+### 3. Environment Variables
+Create a `.env.local` file in the root directory:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### 4. Database Setup
+Execute the database schema migration in Supabase SQL editor:
+```sql
+CREATE TABLE IF NOT EXISTS public.weddings (
+  slug TEXT PRIMARY KEY,
+  bride_name TEXT NOT NULL,
+  groom_name TEXT NOT NULL,
+  monogram TEXT,
+  wedding_date TEXT,
+  display_date TEXT,
+  location_line TEXT,
+  city TEXT,
+  venue_name TEXT,
+  muhurtham_time TEXT,
+  muhurtham_details TEXT,
+  invitation_eyebrow TEXT,
+  invitation_subtitle TEXT,
+  invitation_gateway TEXT,
+  invitation_quote TEXT,
+  story_intro TEXT,
+  final_heading TEXT,
+  final_subtext TEXT,
+  events JSONB NOT NULL DEFAULT '[]'::jsonb,
+  photos JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+### 5. Running the Application
+```bash
+# Start local development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+```
+
+---
+
+## ✦ Application Routes
+
+| Route | Purpose |
+| :--- | :--- |
+| `/` | Default client wedding invitation experience |
+| `/admin` | Royal Wedding Invitation Planner Studio workspace |
+| `/w/[slug]` | Dedicated, dynamic client wedding invitation (e.g., `/w/rohidcb-pushyar`) |
+
+---
+
+## ✦ Motion & Accessibility
+
+- **Native Scrolling**: Supports mouse wheel, touchpad gestures, and standard keyboard navigation (Arrow keys, Spacebar, Page Up/Down).
+- **Reduced Motion Support**: Automatically respects `prefers-reduced-motion` accessibility preferences by disabling ambient particle physics and scene transitions.
+- **Performance Optimization**: Unused offscreen scenes remain idle, and animations pause automatically when the tab is out of view.
