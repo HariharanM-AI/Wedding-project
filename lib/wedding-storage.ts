@@ -85,14 +85,26 @@ export async function listWeddings(): Promise<WeddingData[]> {
   const supabase = getSupabaseClient();
 
   if (!supabase) {
-    return Object.values(localMap);
+    const all = Object.values(localMap);
+    all.sort((a, b) => {
+      if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
+      if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
+      return 0;
+    });
+    return all;
   }
 
   try {
     const { data, error } = await supabase.from("weddings").select("*").order("updated_at", { ascending: false });
     if (error) {
       console.warn("Supabase fetch failed, using local list:", error.message);
-      return Object.values(localMap);
+      const all = Object.values(localMap);
+      all.sort((a, b) => {
+        if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
+        if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
+        return 0;
+      });
+      return all;
     }
 
     if (data && Array.isArray(data)) {
@@ -107,20 +119,34 @@ export async function listWeddings(): Promise<WeddingData[]> {
     console.warn("Failed to sync with Supabase list:", err);
   }
 
-  return Object.values(localMap);
+  const all = Object.values(localMap);
+  all.sort((a, b) => {
+    if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
+    if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
+    return 0;
+  });
+  return all;
 }
 
 export async function getWedding(slug: string): Promise<WeddingData> {
   const localMap = getLocalWeddingsMap();
-  const localWedding = localMap[slug];
+  const localWedding =
+    localMap[slug] ||
+    Object.values(localMap).find((w) => w.slug.toLowerCase() === slug.toLowerCase());
+
+  const isDefault = slug.toLowerCase() === defaultWeddingData.slug.toLowerCase();
 
   const supabase = getSupabaseClient();
   if (!supabase) {
-    return localWedding || (slug === defaultWeddingData.slug ? defaultWeddingData : { ...defaultWeddingData, slug });
+    return localWedding || (isDefault ? defaultWeddingData : { ...defaultWeddingData, slug });
   }
 
   try {
-    const { data, error } = await supabase.from("weddings").select("data").eq("slug", slug).maybeSingle();
+    const { data, error } = await supabase
+      .from("weddings")
+      .select("data")
+      .or(`slug.eq.${slug},slug.ilike.${slug}`)
+      .maybeSingle();
     if (!error && data?.data) {
       const fetched = data.data as WeddingData;
       localMap[slug] = fetched;
@@ -131,7 +157,7 @@ export async function getWedding(slug: string): Promise<WeddingData> {
     console.warn("Error fetching wedding from Supabase:", err);
   }
 
-  return localWedding || (slug === defaultWeddingData.slug ? defaultWeddingData : { ...defaultWeddingData, slug });
+  return localWedding || (isDefault ? defaultWeddingData : { ...defaultWeddingData, slug });
 }
 
 export async function saveWedding(wedding: WeddingData): Promise<{ success: boolean; error?: string }> {

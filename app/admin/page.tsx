@@ -263,6 +263,11 @@ export default function AdminPage() {
   async function refreshWeddingList() {
     const list = await listWeddings();
     const sanitizedList = list.map(sanitizeWeddingData);
+    sanitizedList.sort((a, b) => {
+      if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
+      if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
+      return 0;
+    });
     setWeddings(sanitizedList);
     if (sanitizedList.length > 0 && !currentWedding.slug) {
       setCurrentWedding(sanitizedList[0]);
@@ -375,12 +380,12 @@ export default function AdminPage() {
   }
 
   async function handleDeleteWedding(slug: string) {
-    if (weddings.length <= 1) {
-      alert("At least one wedding project must remain in the studio.");
+    if (slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) {
+      alert("The default template cannot be deleted.");
       return;
     }
     await deleteWedding(slug);
-    const remaining = weddings.filter((w) => w.slug !== slug);
+    const remaining = weddings.filter((w) => w.slug.toLowerCase() !== slug.toLowerCase());
     setWeddings(remaining);
     const next = remaining[0] || defaultWeddingData;
     setCurrentWedding(next);
@@ -1259,63 +1264,72 @@ export default function AdminPage() {
               {weddings.length === 0 ? (
                 <p className="text-sm font-serif text-[#82704f] py-8 text-center">No past clients found.</p>
               ) : (
-                weddings.map((w) => (
-                  <div
-                    key={w.slug}
-                    className={`p-4 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      currentWedding.slug === w.slug
-                        ? "border-[#946f35] bg-[#fbf5e7] shadow-xs"
-                        : "border-[#bc965e]/50 bg-[#fffaf0] hover:border-[#bc965e]"
-                    }`}
-                  >
-                    <div>
-                      <h4 className="font-serif text-base font-semibold text-[#55313c]">
-                        {w.brideName} & {w.groomName}
-                        {currentWedding.slug === w.slug && (
-                          <span className="ml-2 text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df]">
-                            Active
-                          </span>
-                        )}
-                      </h4>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#82704f] mt-1 font-serif">
-                        <span>{w.displayDate || "No date set"}</span>
-                        <span>•</span>
-                        <span>{w.city || w.venueName || "No venue set"}</span>
-                        <span>•</span>
-                        <a
-                          href={`/w/${w.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#946f35] hover:underline flex items-center gap-1 font-mono text-[11px]"
+                weddings.map((w) => {
+                  const isDefault = w.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase();
+                  const isActive = currentWedding.slug.toLowerCase() === w.slug.toLowerCase();
+                  return (
+                    <div
+                      key={w.slug}
+                      className={`p-4 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        isActive
+                          ? "border-[#946f35] bg-[#fbf5e7] shadow-xs"
+                          : "border-[#bc965e]/50 bg-[#fffaf0] hover:border-[#bc965e]"
+                      }`}
+                    >
+                      <div>
+                        <h4 className="font-serif text-base font-semibold text-[#55313c] flex flex-wrap items-center gap-1.5">
+                          <span>{w.brideName} & {w.groomName}</span>
+                          {isDefault && (
+                            <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#946f35]/20 text-[#7a5927] border border-[#946f35]/40">
+                              Default Template
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df]">
+                              Active
+                            </span>
+                          )}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#82704f] mt-1 font-serif">
+                          <span>{w.displayDate || "No date set"}</span>
+                          <span>•</span>
+                          <span>{w.city || w.venueName || "No venue set"}</span>
+                          <span>•</span>
+                          <a
+                            href={`/w/${w.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#946f35] hover:underline flex items-center gap-1 font-mono text-[11px]"
+                          >
+                            <span>/w/{w.slug}</span>
+                            <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            handleSelectWedding(w.slug);
+                            setShowPastClientsModal(false);
+                          }}
+                          className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all"
                         >
-                          <span>/w/{w.slug}</span>
-                          <ExternalLink size={10} />
-                        </a>
+                          Edit Project
+                        </button>
+                        {!isDefault && (
+                          <button
+                            onClick={() => setClientToDelete(w)}
+                            className="p-1.5 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all"
+                            title="Delete permanently"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          handleSelectWedding(w.slug);
-                          setShowPastClientsModal(false);
-                        }}
-                        className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all"
-                      >
-                        Edit Project
-                      </button>
-                      {weddings.length > 1 && (
-                        <button
-                          onClick={() => setClientToDelete(w)}
-                          className="p-1.5 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all"
-                          title="Delete permanently"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -1358,9 +1372,9 @@ export default function AdminPage() {
                   const slug = clientToDelete.slug;
                   setClientToDelete(null);
                   await deleteWedding(slug);
-                  const remaining = weddings.filter((w) => w.slug !== slug);
+                  const remaining = weddings.filter((w) => w.slug.toLowerCase() !== slug.toLowerCase());
                   setWeddings(remaining);
-                  if (currentWedding.slug === slug) {
+                  if (currentWedding.slug.toLowerCase() === slug.toLowerCase()) {
                     const next = remaining[0] || defaultWeddingData;
                     setCurrentWedding(next);
                     broadcastWeddingUpdate(next);
