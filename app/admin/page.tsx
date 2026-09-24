@@ -695,8 +695,8 @@ export default function AdminPage() {
       {/* FULL-WIDTH RESPONSIVE STUDIO BODY (Edge-to-edge, smoothly filling the screen) */}
       <main className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6">
         <div className="w-full flex flex-col gap-6">
-          {/* TABS SELECTOR */}
-          <div className="w-full flex border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-2 gap-2 overflow-x-auto shadow-sm">
+          {/* TABS SELECTOR - Fully Responsive, Equally Fills Entire Space Up to the End */}
+          <div className="w-full grid grid-cols-2 sm:grid-cols-4 border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-1.5 sm:p-2 gap-2 shadow-sm">
             {[
               { id: "couple", label: "Couple & Story", icon: Heart },
               { id: "venue", label: "Muhurtham & Venue", icon: MapPin },
@@ -709,16 +709,16 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`group flex items-center gap-2.5 px-6 py-2.5 font-serif text-sm transition-all duration-200 whitespace-nowrap rounded-lg relative cursor-pointer ${
+                  className={`group w-full flex items-center justify-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2.5 font-serif text-xs sm:text-sm transition-all duration-200 rounded-lg relative cursor-pointer ${
                     isActive
-                      ? "bg-gradient-to-r from-[#55313c] via-[#482530] to-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#bc965e]/60 scale-[1.01]"
+                      ? "bg-gradient-to-r from-[#55313c] via-[#482530] to-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#bc965e]/60"
                       : "text-[#7c6341] hover:text-[#55313c] hover:bg-[#f6ebd8] hover:border-[#bc965e]/60 hover:shadow-xs hover:-translate-y-0.5 active:translate-y-0 border border-transparent font-medium"
                   }`}
                 >
-                  <Icon size={16} className={`transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
-                  <span>{tab.label}</span>
+                  <Icon size={16} className={`shrink-0 transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
+                  <span className="truncate">{tab.label}</span>
                   {isActive && (
-                    <span className="w-2 h-2 rounded-full bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full shrink-0 bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
                   )}
                 </button>
               );
