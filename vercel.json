@@ -3,5 +3,12 @@
   "framework": null,
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build:static",
-  "outputDirectory": "dist/client"
+  "outputDirectory": "dist/client",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/w/:slug",
+      "destination": "/w/rohidcb-pushyar.html"
+    }
+  ]
 }
