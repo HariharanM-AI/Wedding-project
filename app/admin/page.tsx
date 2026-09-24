@@ -834,7 +834,7 @@ export default function AdminPage() {
                 <div className="pt-4 border-t border-[#bc965e]/30">
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Final Closing Subtext (Under "Save the Date")
+                      Final Closing Subtext
                     </label>
                     <input
                       type="text"
@@ -843,9 +843,6 @@ export default function AdminPage() {
                       placeholder={`Wedding of ${currentWedding.brideName} & ${currentWedding.groomName}`}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
-                    <p className="text-xs text-[#82704f] mt-1 italic">
-                      Appears below the "Save the date" button in the final landscape scene.
-                    </p>
                   </div>
                 </div>
               </div>
