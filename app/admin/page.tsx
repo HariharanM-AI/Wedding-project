@@ -238,12 +238,14 @@ export default function AdminPage() {
       <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 lg:px-12 py-3.5 shadow-sm">
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl border-2 border-[#bc965e] bg-white p-1.5 shadow-lg shadow-[#946f35]/25 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-4 ring-[#fffcf4]/80">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-2xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1.5 shadow-lg shadow-[#946f35]/25 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-2 ring-[#bc965e]/40 relative group">
+              {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
-                src="/logo.png"
+                src="/Hari_WEDDING_project_logo_final.png"
                 alt="Hari Wedding Project Logo"
-                className="w-full h-full object-contain filter brightness-105 contrast-105 drop-shadow-sm"
+                className="w-full h-full object-contain scale-[1.32] filter drop-shadow-[0_4px_12px_rgba(188,150,94,0.55)] brightness-[1.08] contrast-[1.05] relative z-10 transition-transform duration-300 group-hover:scale-[1.38]"
               />
             </div>
             <div>
