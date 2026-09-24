@@ -60,7 +60,7 @@ function BlessingControls({ bride, groom }: { bride: string; groom: string }) {
     <div className="blessing-controls" data-layer="blessing-controls">
       <span className="eyebrow">{bride.toUpperCase()} & {groom.toUpperCase()}</span>
       <button className="gold-button akshantalu-button" onClick={() => dispatchEvent(new Event(SHOWER_EVENT))}>
-        Shower akshantalu <span aria-hidden="true">✦</span>
+        Bless The Couple <span aria-hidden="true">✦</span>
       </button>
       <p className="tap-hint">
         Tap anywhere to bless the couple
