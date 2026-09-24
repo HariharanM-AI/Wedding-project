@@ -216,29 +216,27 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#f6ebda] text-[#55313c] font-sans relative overflow-x-hidden selection:bg-[#ab8644] selection:text-[#fff8e9]">
-      {/* CLEARLY VISIBLE ROYAL TEMPLE & LANDSCAPE BACKGROUND ARTWORK */}
+      {/* PROMINENTLY VISIBLE ROYAL TEMPLE & LANDSCAPE BACKGROUND ARTWORK */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-20 mix-blend-multiply z-0"
+        className="fixed inset-0 pointer-events-none z-0"
         style={{
           backgroundImage: "url('/art/landscape.webp')",
           backgroundSize: "cover",
-          backgroundPosition: "center top",
-          filter: "sepia(0.2) saturate(1.1)"
+          backgroundPosition: "center",
+          opacity: 0.38,
+          filter: "contrast(1.1) saturate(1.15)"
         }}
       />
-      <div className="fixed -bottom-10 right-0 w-[540px] h-[540px] pointer-events-none opacity-20 z-0">
-        <img src="/art/temple.webp" alt="" className="w-full h-full object-contain object-bottom-right" />
-      </div>
-      <div className="fixed top-12 left-0 w-[460px] h-[460px] pointer-events-none opacity-18 z-0">
-        <img src="/art/gate.webp" alt="" className="w-full h-full object-contain object-top-left" />
-      </div>
+
+      
+      
 
       {/* Hidden file input for photo uploads */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* ROYAL HEADER & ACTION BAR */}
-      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 py-3.5 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 lg:px-12 py-3.5 shadow-sm">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
           <div className="flex items-center gap-3.5">
             <div className="font-serif text-2xl font-light text-[#55313c] px-3.5 py-1.5 border border-[#bc965e] bg-[#fffaf0] rounded shadow-inner flex items-center justify-center min-w-[52px]">
@@ -332,7 +330,7 @@ export default function AdminPage() {
 
         {/* Live Notification Bar */}
         {saveStatus && (
-          <div className="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-[#bc965e]/30 flex items-center justify-between text-xs text-[#946f35] font-serif animate-fade-in">
+          <div className="w-full mt-2.5 pt-2 border-t border-[#bc965e]/30 flex items-center justify-between text-xs text-[#946f35] font-serif animate-fade-in">
             <span className="flex items-center gap-1.5 font-medium">
               <Sparkles size={13} className="text-[#b58e45]" /> {saveStatus}
             </span>
@@ -341,11 +339,11 @@ export default function AdminPage() {
         )}
       </header>
 
-      {/* FULL-WIDTH RESPONSIVE STUDIO BODY (No right preview card, perfectly balanced) */}
-      <main className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 py-8">
-        <div className="flex flex-col gap-6">
+      {/* FULL-WIDTH RESPONSIVE STUDIO BODY (Edge-to-edge, smoothly filling the screen) */}
+      <main className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6">
+        <div className="w-full flex flex-col gap-6">
           {/* TABS SELECTOR */}
-          <div className="flex border-b border-[#bc965e] bg-[#fffcf4]/90 backdrop-blur-md rounded-t-xl px-3 pt-3 gap-2 overflow-x-auto shadow-sm">
+          <div className="w-full flex border-b border-[#bc965e] bg-[#fffcf4]/88 backdrop-blur-md rounded-t-xl px-4 pt-3.5 gap-2 overflow-x-auto shadow-sm">
             {[
               { id: "couple", label: "Couple & Story", icon: Heart },
               { id: "venue", label: "Muhurtham & Venue", icon: MapPin },
@@ -358,7 +356,7 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2.5 px-6 py-3.5 font-serif text-sm border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
+                  className={`flex items-center gap-2.5 px-7 py-3.5 font-serif text-sm border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                     isActive
                       ? "border-[#946f35] text-[#55313c] font-semibold bg-[#f7eedc] shadow-xs"
                       : "border-transparent text-[#82704f] hover:text-[#55313c] hover:bg-[#fff9ef]/70"
@@ -372,7 +370,8 @@ export default function AdminPage() {
           </div>
 
           {/* TAB CARD WORKSPACE */}
-          <div className="bg-[#fffdf7]/94 backdrop-blur-md border border-[#bc965e] p-6 sm:p-10 rounded-b-xl shadow-lg">
+          <div className="w-full bg-[#fffdf7]/85 backdrop-blur-md border border-[#bc965e]/80 p-6 sm:p-10 rounded-b-xl shadow-xl">
+
             {/* TAB 1: COUPLE & STORY */}
             {activeTab === "couple" && (
               <div className="space-y-8 animate-fade-in">
