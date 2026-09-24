@@ -52,6 +52,9 @@ export default defineConfig(async () => {
 
   return {
     server: {
+      watch: {
+        ignored: ["**/LOGO/**", "**/.git/**", "**/dist/**", "**/.wrangler/**"],
+      },
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
     },
