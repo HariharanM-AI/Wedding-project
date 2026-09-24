@@ -18,7 +18,8 @@ import {
   ScrollText,
   Compass,
   Users,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { WeddingData, WeddingEvent, WeddingPhotos } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
@@ -594,7 +595,7 @@ export default function AdminPage() {
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="h-8 px-2 sm:px-2.5 bg-[#fffdf7] border border-[#bc965e] text-[11.5px] sm:text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs shrink-0 max-w-[170px] sm:max-w-[190px] truncate cursor-pointer"
+              className="h-8 px-2 sm:px-2.5 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] hover:shadow-xs text-[11.5px] sm:text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs shrink-0 max-w-[170px] sm:max-w-[190px] truncate cursor-pointer transition-all duration-200"
               title="Recent 5 Edited Projects"
             >
               {recentWeddings.map((w) => (
@@ -607,28 +608,32 @@ export default function AdminPage() {
             {/* Past Clients */}
             <button
               onClick={() => setShowPastClientsModal(true)}
-              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Users size={13} />
+              <Users size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200" />
               <span>Past Clients</span>
             </button>
 
             {/* New Wedding */}
             <button
               onClick={() => setShowNewModal(true)}
-              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] hover:border-[#533c19] hover:shadow-md hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Plus size={13} />
+              <Plus size={13} className="group-hover:rotate-90 group-hover:scale-115 transition-transform duration-300" />
               <span>New Wedding</span>
             </button>
 
             {/* Copy Link */}
             <button
               onClick={handleCopyClientLink}
-              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
               title="Copy shareable client link"
             >
-              {copiedLink ? <Check size={13} className="text-emerald-700" /> : <Copy size={13} />}
+              {copiedLink ? (
+                <Check size={13} className="text-emerald-700 scale-110" />
+              ) : (
+                <Copy size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200" />
+              )}
               <span>{copiedLink ? "Link Copied!" : "Copy Client Link"}</span>
             </button>
 
@@ -637,19 +642,45 @@ export default function AdminPage() {
               href={clientUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <ExternalLink size={13} />
+              <ExternalLink size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
               <span>Open Invitation</span>
             </a>
 
-            {/* Save Changes - Positioned above as the LAST button, rightside of Open Invitation */}
+            {/* Save Changes - High-Impact Attractive Primary Action Button */}
             <button
               onClick={handleSave}
-              className="h-8 px-3 sm:px-3.5 text-[11.5px] sm:text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              disabled={saveStatus === "Saving..."}
+              className="relative overflow-hidden h-8 px-3.5 sm:px-4 text-[11.5px] sm:text-xs font-serif font-semibold tracking-wide bg-gradient-to-r from-[#7a182d] via-[#5c1322] to-[#7a182d] hover:from-[#942038] hover:via-[#70182b] hover:to-[#942038] text-[#fff6df] border border-[#f3d382] ring-1 ring-[#ffd778]/50 hover:ring-[#ffd778]/90 shadow-[0_2px_8px_rgba(110,24,45,0.35)] hover:shadow-[0_4px_16px_rgba(148,32,56,0.5)] transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.98] group"
+              title="Save all changes to Cloud Database & Live Sync"
             >
-              <Save size={13} />
-              <span>Save Changes</span>
+              {/* Luxury Shimmer Sweep Effect across the button on hover */}
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+
+              {saveStatus === "Saving..." ? (
+                <>
+                  <Loader2 size={13.5} className="animate-spin text-[#ffd778] relative z-10" />
+                  <span className="relative z-10 text-[#ffd778]">Saving...</span>
+                </>
+              ) : saveStatus && saveStatus.startsWith("Saved") ? (
+                <>
+                  <Check size={13.5} className="text-[#6ee7b7] relative z-10 scale-110" />
+                  <span className="relative z-10 text-[#d1fae5]">Saved! ✦</span>
+                </>
+              ) : (
+                <>
+                  <Save
+                    size={13.5}
+                    className="text-[#ffd778] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-[-8deg] transition-transform duration-300 relative z-10"
+                  />
+                  <span className="relative z-10">Save Changes</span>
+                  <Sparkles
+                    size={11}
+                    className="text-[#ffd778] animate-pulse group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_4px_#ffd778] relative z-10"
+                  />
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -682,16 +713,16 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2.5 px-6 py-2.5 font-serif text-sm transition-all whitespace-nowrap rounded-lg relative ${
+                  className={`group flex items-center gap-2.5 px-6 py-2.5 font-serif text-sm transition-all duration-200 whitespace-nowrap rounded-lg relative cursor-pointer ${
                     isActive
-                      ? "bg-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#946f35]/50 scale-[1.01]"
-                      : "text-[#7c6341] hover:text-[#55313c] hover:bg-[#f6ebd8]/80 border border-transparent font-medium"
+                      ? "bg-gradient-to-r from-[#55313c] via-[#482530] to-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#bc965e]/60 scale-[1.01]"
+                      : "text-[#7c6341] hover:text-[#55313c] hover:bg-[#f6ebd8] hover:border-[#bc965e]/60 hover:shadow-xs hover:-translate-y-0.5 active:translate-y-0 border border-transparent font-medium"
                   }`}
                 >
-                  <Icon size={16} className={isActive ? "text-[#dfbe7d]" : "text-[#946f35]"} />
+                  <Icon size={16} className={`transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
                   <span>{tab.label}</span>
                   {isActive && (
-                    <span className="w-2 h-2 rounded-full bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5" />
+                    <span className="w-2 h-2 rounded-full bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
                   )}
                 </button>
               );
@@ -983,9 +1014,9 @@ export default function AdminPage() {
                   </div>
                   <button
                     onClick={handleOpenAddEventModal}
-                    className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] transition-all rounded flex items-center gap-1.5 shadow-sm w-max"
+                    className="group px-4 py-2 text-xs font-serif bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff7df] border border-[#765426] hover:shadow-md hover:shadow-[#946f35]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs w-max cursor-pointer"
                   >
-                    <Plus size={14} />
+                    <Plus size={14} className="group-hover:rotate-90 group-hover:scale-115 transition-transform duration-300" />
                     <span>Add Celebration</span>
                   </button>
                 </div>
@@ -1003,9 +1034,9 @@ export default function AdminPage() {
                         {currentWedding.events.length > 1 && (
                           <button
                             onClick={() => setEventToDelete(evt)}
-                            className="text-xs text-rose-800 hover:text-rose-950 flex items-center gap-1 px-2.5 py-1 rounded hover:bg-rose-100/50"
+                            className="group text-xs text-rose-800 hover:text-rose-950 flex items-center gap-1 px-2.5 py-1 rounded-md hover:bg-rose-100/70 border border-transparent hover:border-rose-200 hover:shadow-xs transition-all duration-200 cursor-pointer"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={13} className="group-hover:scale-115 transition-transform duration-200" />
                             <span>Remove</span>
                           </button>
                         )}
@@ -1135,7 +1166,7 @@ export default function AdminPage() {
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-3 gap-2">
                               <button
                                 onClick={() => triggerUpload(item.slot)}
-                                className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] rounded shadow hover:bg-[#765426]"
+                                className="px-4 py-2 text-xs font-serif bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff7df] rounded-md shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                               >
                                 Replace Photo
                               </button>
@@ -1150,9 +1181,9 @@ export default function AdminPage() {
                           <button
                             onClick={() => triggerUpload(item.slot)}
                             disabled={isUploading}
-                            className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] transition-all rounded flex items-center gap-1.5 text-[#55313c]"
+                            className="group px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] hover:border-[#946f35] hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] cursor-pointer disabled:opacity-60"
                           >
-                            <Upload size={13} />
+                            <Upload size={13} className="group-hover:scale-115 transition-transform duration-200" />
                             <span>{isUploading ? "Uploading..." : "Upload New"}</span>
                           </button>
 
@@ -1164,7 +1195,7 @@ export default function AdminPage() {
                               };
                               updateWedding({ photos: resetPhotos });
                             }}
-                            className="text-[11px] text-[#82704f] hover:text-[#55313c] underline"
+                            className="text-[11px] text-[#82704f] hover:text-[#55313c] hover:underline transition-colors duration-200 cursor-pointer"
                             title="Reset back to default template photo"
                           >
                             Reset
@@ -1213,7 +1244,7 @@ export default function AdminPage() {
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-3 gap-2">
                                   <button
                                     onClick={() => triggerUploadEvent(evt.id)}
-                                    className="px-4 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] rounded shadow hover:bg-[#765426]"
+                                    className="px-4 py-2 text-xs font-serif bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff7df] rounded-md shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                                   >
                                     Replace Photo
                                   </button>
@@ -1232,9 +1263,9 @@ export default function AdminPage() {
                               <button
                                 onClick={() => triggerUploadEvent(evt.id)}
                                 disabled={isUploading}
-                                className="px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] transition-all rounded flex items-center gap-1.5 text-[#55313c]"
+                                className="group px-3.5 py-1.5 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] hover:border-[#946f35] hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] cursor-pointer disabled:opacity-60"
                               >
-                                <Upload size={13} />
+                                <Upload size={13} className="group-hover:scale-115 transition-transform duration-200" />
                                 <span>{isUploading ? "Uploading..." : "Upload New"}</span>
                               </button>
 
