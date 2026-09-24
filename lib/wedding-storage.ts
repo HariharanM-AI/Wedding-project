@@ -30,7 +30,7 @@ function saveLocalWeddingsMap(map: Record<string, WeddingData>): void {
   }
 }
 
-function broadcastUpdate(wedding: WeddingData) {
+export function broadcastWeddingUpdate(wedding: WeddingData) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("wedding-data-updated", { detail: wedding }));
   try {
@@ -41,6 +41,10 @@ function broadcastUpdate(wedding: WeddingData) {
     // BroadcastChannel not supported in all contexts
   }
 }
+
+const broadcastUpdate = broadcastWeddingUpdate;
+
+
 
 export function subscribeToWeddingUpdates(onUpdate: (wedding: WeddingData) => void): () => void {
   if (typeof window === "undefined") return () => {};

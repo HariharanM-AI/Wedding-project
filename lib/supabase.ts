@@ -5,6 +5,16 @@ export const DEFAULT_SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`
 
 let cachedClient: SupabaseClient | null = null;
 let lastUsedKey: string | null = null;
+let lastUsedUrl: string | null = null;
+
+export function getCleanSupabaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (envUrl && envUrl.trim()) {
+    // Strip trailing /rest/v1, /rest/v1/, or trailing slashes
+    return envUrl.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+  }
+  return DEFAULT_SUPABASE_URL;
+}
 
 export function getSupabaseAnonKey(): string | null {
   if (typeof window !== "undefined") {
@@ -29,16 +39,19 @@ export function getSupabaseClient(): SupabaseClient | null {
   const anonKey = getSupabaseAnonKey();
   if (!anonKey) return null;
 
-  if (cachedClient && lastUsedKey === anonKey) {
+  const url = getCleanSupabaseUrl();
+
+  if (cachedClient && lastUsedKey === anonKey && lastUsedUrl === url) {
     return cachedClient;
   }
 
   try {
-    const client = createClient(DEFAULT_SUPABASE_URL, anonKey, {
+    const client = createClient(url, anonKey, {
       auth: { persistSession: false }
     });
     cachedClient = client;
     lastUsedKey = anonKey;
+    lastUsedUrl = url;
     return client;
   } catch (err) {
     console.error("Failed to initialize Supabase client:", err);
