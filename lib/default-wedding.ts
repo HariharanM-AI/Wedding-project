@@ -1,10 +1,10 @@
 import { WeddingData } from "./types/wedding";
 
 export const defaultWeddingData: WeddingData = {
-  slug: "ananya-karthik",
-  brideName: "Ananya",
-  groomName: "Karthik",
-  monogram: "a&k",
+  slug: "Jyothika-Suriya",
+  brideName: "Jyothika S",
+  groomName: "Suriya S",
+  monogram: "S&J",
   blessingEyebrow: "WITH THE BLESSINGS OF OUR FAMILIES",
   weddingDate: "2027-02-20T09:15:00+05:30",
   displayDate: "20 February 2027",

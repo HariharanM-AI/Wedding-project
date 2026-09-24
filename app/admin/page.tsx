@@ -375,8 +375,8 @@ export default function AdminPage() {
   }
 
   async function handleDeleteWedding(slug: string) {
-    if (slug === defaultWeddingData.slug) {
-      alert("The default template cannot be deleted.");
+    if (weddings.length <= 1) {
+      alert("At least one wedding project must remain in the studio.");
       return;
     }
     await deleteWedding(slug);
@@ -1304,7 +1304,7 @@ export default function AdminPage() {
                       >
                         Edit Project
                       </button>
-                      {w.slug !== defaultWeddingData.slug && (
+                      {weddings.length > 1 && (
                         <button
                           onClick={() => setClientToDelete(w)}
                           className="p-1.5 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all"
