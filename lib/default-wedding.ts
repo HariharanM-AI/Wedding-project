@@ -17,6 +17,7 @@ export const defaultWeddingData: WeddingData = {
   city: "Thanjavur, Tamil Nadu",
   venueName: "The Heritage Courtyard",
   muhurthamTime: "Muhurtham · 9:15 am – 11:30 am",
+  muhurthamDetails: "With the blessings of our families, join us for our wedding ceremony under the sacred temple towers, followed by a traditional celebratory lunch.",
   storyIntro: "Different paths, the same kind of forever.",
   finalHeading: "Our forever begins with you.",
   finalSubtext: "Wedding of Jyothika S & Suriya S",

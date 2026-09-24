@@ -221,10 +221,12 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
   }
   const monogram = (w.monogram || "").toUpperCase();
   const finalSubtext = w.finalSubtext || (w.brideName && w.groomName ? `Wedding of ${w.brideName} & ${w.groomName}` : "");
+  const muhurthamDetails = w.muhurthamDetails || defaultWeddingData.muhurthamDetails || "";
   return {
     ...w,
     monogram,
     finalSubtext,
+    muhurthamDetails,
     weddingDate,
     events: cleanEvents
   };
@@ -342,6 +344,7 @@ export default function AdminPage() {
       groomName: groom,
       monogram,
       finalSubtext: `Wedding of ${bride} & ${groom}`,
+      muhurthamDetails: defaultWeddingData.muhurthamDetails || "",
       displayDate: "",
       weddingDate: "",
       locationLine: "",
@@ -906,6 +909,22 @@ export default function AdminPage() {
                     placeholder="e.g. 24 NOVEMBER 2027 · THANJAVUR"
                     className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                   />
+                </div>
+
+                <div className="pt-4 border-t border-[#bc965e]/30">
+                  <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
+                    Full Story & Details (Shown in Guest Pop-Up)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={currentWedding.muhurthamDetails || ""}
+                    onChange={(e) => updateWedding({ muhurthamDetails: e.target.value })}
+                    placeholder="With the blessings of our families, join us for our sacred Muhurtham ceremony and traditional South Indian lunch. Come bless our union as we begin our new journey together."
+                    className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                  />
+                  <p className="text-xs text-[#82704f] mt-1 italic">
+                    This detailed copy will appear inside the pop-up modal when guests click the "Wedding details" button on the invitation.
+                  </p>
                 </div>
               </div>
             )}

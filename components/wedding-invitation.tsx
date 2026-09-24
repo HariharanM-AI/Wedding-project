@@ -108,7 +108,7 @@ const FilmScenes = memo(function FilmScenes({
   onDetails
 }: {
   data: WeddingData;
-  onDetails: (n: number) => void;
+  onDetails: (target: number | "muhurtham") => void;
 }) {
   const rawEvents = data.events && data.events.length > 0 ? data.events : defaultWeddingData.events;
   const events = (rawEvents || []).filter(
@@ -279,7 +279,7 @@ const FilmScenes = memo(function FilmScenes({
             <br />
             {data.muhurthamTime}
           </p>
-          <button className="gold-button wine-button" onClick={() => onDetails(events.length > 2 ? 2 : 0)}>
+          <button className="gold-button wine-button" onClick={() => onDetails("muhurtham")}>
             Wedding details <ArrowUpRight size={15} />
           </button>
         </div>
@@ -391,7 +391,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
   const maxScroll = useRef(1);
   const reduceRef = useRef(false);
   const [ready, setReady] = useState(false);
-  const [event, setEvent] = useState<number | null>(null);
+  const [event, setEvent] = useState<number | "muhurtham" | null>(null);
   const [reduced, setReduced] = useState(false);
 
   // Sync real-time updates across tabs/editor
@@ -757,7 +757,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
   const activeEvents = (rawActiveEvents || []).filter(
     (e) => !/the wedding ceremony/i.test(e.title || "") && e.id !== "event-3"
   );
-  const currentEvent = event !== null && activeEvents[event] ? activeEvents[event] : null;
+  const currentEvent = typeof event === "number" && activeEvents[event] ? activeEvents[event] : null;
 
   return (
     <div ref={root} id="invitation-top" className={`invitation-film ${ready ? "ready" : ""} ${reduced ? "reduced" : ""}`}>
@@ -782,7 +782,29 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
         }}
       >
         <DialogContent className="event-dialog">
-          {currentEvent ? (
+          {event === "muhurtham" ? (
+            <>
+              <span className="eyebrow">
+                {data.brideName.toUpperCase()} & {data.groomName.toUpperCase()} · AUSPICIOUS MUHURTHAM
+              </span>
+              <DialogTitle className="dialog-title">The Wedding Ceremony & Muhurtham</DialogTitle>
+              <DialogDescription className="dialog-description">
+                {data.muhurthamDetails ||
+                  "With the blessings of our families, join us as we step into forever under sacred chants and auspicious blessings. A traditional feast follows the ceremony."}
+              </DialogDescription>
+              <p className="dialog-date">
+                {data.displayDate}
+                <br />
+                {data.muhurthamTime}
+              </p>
+              <p>
+                {data.venueName} · {data.city}
+              </p>
+              <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+                Save the celebrations <CalendarDays size={16} />
+              </a>
+            </>
+          ) : currentEvent ? (
             <>
               <span className="eyebrow">
                 {data.brideName.toUpperCase()} & {data.groomName.toUpperCase()} · THE CELEBRATIONS

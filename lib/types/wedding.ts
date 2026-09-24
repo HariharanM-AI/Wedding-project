@@ -39,6 +39,7 @@ export interface WeddingData {
   city: string; // e.g. "Thanjavur, Tamil Nadu"
   venueName: string; // e.g. "The Heritage Courtyard"
   muhurthamTime: string; // e.g. "Muhurtham · 9:15 am – 11:30 am"
+  muhurthamDetails?: string; // Story & details displayed in guest pop-up for the wedding ceremony
   events: WeddingEvent[];
   photos: WeddingPhotos;
   storyIntro: string; // e.g. "Different paths, the same kind of forever."

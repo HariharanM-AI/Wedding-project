@@ -182,6 +182,7 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
         wedding_date: wedding.weddingDate || "",
         display_date: wedding.displayDate || "",
         muhurtham_time: wedding.muhurthamTime || "",
+        muhurtham_details: wedding.muhurthamDetails || "",
         venue_name: wedding.venueName || "",
         city: wedding.city || "",
         location_line: wedding.locationLine || "",
