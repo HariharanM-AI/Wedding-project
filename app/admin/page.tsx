@@ -63,11 +63,58 @@ function parseDateParts(dateStr: string) {
   };
 }
 
+function generateIsoTimestamp(dateStr: string, timeStr: string): string | null {
+  if (!dateStr) return null;
+  const parts = parseDateParts(dateStr);
+  if (!parts.day || !parts.month || !parts.year) return null;
+
+  const monthIdx = MONTHS.findIndex((m) => m.toLowerCase() === parts.month.toLowerCase());
+  if (monthIdx === -1) return null;
+
+  const yyyy = parts.year;
+  const mm = String(monthIdx + 1).padStart(2, "0");
+  const dd = String(parseInt(parts.day, 10)).padStart(2, "0");
+
+  let hours = 9;
+  let minutes = 15;
+
+  if (timeStr) {
+    // Match patterns like "9:15 am", "09:15 AM", "9:15", "9 am", "11:30 am", "6:00 pm"
+    const matchWithMinutes = timeStr.match(/\b([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)?\b/i);
+    const matchHourOnly = timeStr.match(/\b([01]?\d|2[0-3])\s*(am|pm)\b/i);
+
+    if (matchWithMinutes) {
+      let h = parseInt(matchWithMinutes[1], 10);
+      const m = parseInt(matchWithMinutes[2], 10);
+      const meridian = matchWithMinutes[3]?.toLowerCase();
+
+      if (meridian === "pm" && h < 12) h += 12;
+      if (meridian === "am" && h === 12) h = 0;
+
+      hours = h;
+      minutes = m;
+    } else if (matchHourOnly) {
+      let h = parseInt(matchHourOnly[1], 10);
+      const meridian = matchHourOnly[2]?.toLowerCase();
+
+      if (meridian === "pm" && h < 12) h += 12;
+      if (meridian === "am" && h === 12) h = 0;
+
+      hours = h;
+      minutes = 0;
+    }
+  }
+
+  const hh = String(hours).padStart(2, "0");
+  const min = String(minutes).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:00+05:30`;
+}
+
 function RoyalDatePicker({
   value,
   onChange,
-  className,
-  variant = "celebration"
+  className
 }: {
   value: string;
   onChange: (val: string) => void;
@@ -102,9 +149,7 @@ function RoyalDatePicker({
   }
 
   const selectClasses =
-    variant === "venue"
-      ? "w-full bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-      : "w-full bg-[#fbf4e6] border border-[#bc965e] px-2 py-1.5 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]";
+    "w-full bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]";
 
   return (
     <div className={`grid grid-cols-3 gap-2 ${className || ""}`}>
@@ -169,8 +214,13 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
   if (cleanEvents.length > 1 && !cleanEvents[1].title) {
     cleanEvents[1] = { ...cleanEvents[1], title: "Sangeet evening" };
   }
+  let weddingDate = w.weddingDate;
+  if (!weddingDate && w.displayDate) {
+    weddingDate = generateIsoTimestamp(w.displayDate, w.muhurthamTime) || "";
+  }
   return {
     ...w,
+    weddingDate,
     events: cleanEvents
   };
 }
@@ -739,8 +789,13 @@ export default function AdminPage() {
                     </label>
                     <RoyalDatePicker
                       value={currentWedding.displayDate}
-                      variant="venue"
-                      onChange={(newDate) => updateWedding({ displayDate: newDate })}
+                      onChange={(newDate) => {
+                        const autoIso = generateIsoTimestamp(newDate, currentWedding.muhurthamTime);
+                        updateWedding({
+                          displayDate: newDate,
+                          ...(autoIso ? { weddingDate: autoIso } : {})
+                        });
+                      }}
                     />
                   </div>
 
@@ -792,7 +847,14 @@ export default function AdminPage() {
                     <input
                       type="text"
                       value={currentWedding.muhurthamTime}
-                      onChange={(e) => updateWedding({ muhurthamTime: e.target.value })}
+                      onChange={(e) => {
+                        const newTime = e.target.value;
+                        const autoIso = generateIsoTimestamp(currentWedding.displayDate, newTime);
+                        updateWedding({
+                          muhurthamTime: newTime,
+                          ...(autoIso ? { weddingDate: autoIso } : {})
+                        });
+                      }}
                       placeholder="e.g. Muhurtham · 9:15 am – 11:30 am"
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
@@ -856,66 +918,65 @@ export default function AdminPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div>
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Event Title</label>
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">Event Title</label>
                           <input
                             type="text"
                             value={evt.title}
                             onChange={(e) => handleUpdateEvent(idx, "title", e.target.value)}
                             placeholder={idx === 0 ? "e.g. Mehandhi Afternoon" : idx === 1 ? "e.g. Sangeet evening" : "e.g. Reception"}
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Date</label>
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">Date</label>
                           <RoyalDatePicker
                             value={evt.date}
-                            variant="celebration"
                             onChange={(newDate) => handleUpdateEvent(idx, "date", newDate)}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Time</label>
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">Time</label>
                           <input
                             type="text"
                             value={evt.time}
                             onChange={(e) => handleUpdateEvent(idx, "time", e.target.value)}
                             placeholder="e.g. 4:00 pm onwards"
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Venue Location</label>
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">Venue Location</label>
                           <input
                             type="text"
                             value={evt.venue}
                             onChange={(e) => handleUpdateEvent(idx, "venue", e.target.value)}
                             placeholder="e.g. The Garden Courtyard"
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">Card Tagline</label>
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">Card Tagline</label>
                           <input
                             type="text"
                             value={evt.shortTagline || ""}
                             onChange={(e) => handleUpdateEvent(idx, "shortTagline", e.target.value)}
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded h-[34px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
 
                         <div className="md:col-span-3">
-                          <label className="block text-xs font-serif text-[#82704f] mb-1 font-medium">
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
                             Full Story & Details (Shown in Guest Pop-Up)
                           </label>
                           <textarea
-                            rows={2}
+                            rows={3}
                             value={evt.copy}
                             onChange={(e) => handleUpdateEvent(idx, "copy", e.target.value)}
-                            className="w-full bg-[#fbf4e6] border border-[#bc965e] px-3.5 py-2 text-xs text-[#55313c] rounded"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
                         </div>
                       </div>
