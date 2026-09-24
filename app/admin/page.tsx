@@ -891,7 +891,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Formatted Display Date
+                      Wedding Date
                     </label>
                     <RoyalDatePicker
                       value={currentWedding.displayDate}
@@ -948,7 +948,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                      Muhurtham Timing Window
+                      Muhurtham Timing
                     </label>
                     <input
                       type="text"
@@ -969,7 +969,7 @@ export default function AdminPage() {
 
                 <div className="pt-4 border-t border-[#bc965e]/30">
                   <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                    Location Stamp Banner (Footer & Gateway)
+                    Location Stamp Banner 
                   </label>
                   <input
                     type="text"
@@ -982,7 +982,7 @@ export default function AdminPage() {
 
                 <div className="pt-4 border-t border-[#bc965e]/30">
                   <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                    Full Story & Details (Shown in Guest Pop-Up)
+                    Full Story & Details 
                   </label>
                   <textarea
                     rows={4}
@@ -992,7 +992,7 @@ export default function AdminPage() {
                     className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                   />
                   <p className="text-xs text-[#82704f] mt-1 italic">
-                    This detailed copy will appear inside the pop-up modal when guests click the "Wedding details" button on the invitation.
+                    
                   </p>
                 </div>
               </div>
@@ -1092,7 +1092,7 @@ export default function AdminPage() {
 
                         <div className="md:col-span-3">
                           <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
-                            Full Story & Details (Shown in Guest Pop-Up)
+                            Full Story & Details 
                           </label>
                           <textarea
                             rows={3}
