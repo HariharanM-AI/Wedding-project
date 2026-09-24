@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/w/:slug",
-      "destination": "/w/rohidcb-pushyar.html"
+      "destination": "/w/Jyothika-Suriya.html"
     }
   ]
 }

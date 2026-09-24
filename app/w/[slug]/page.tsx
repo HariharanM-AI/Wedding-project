@@ -2,6 +2,7 @@ import ClientWeddingView from "./client-view";
 
 export function generateStaticParams() {
   return [
+    { slug: "Jyothika-Suriya" },
     { slug: "rohidcb-pushyar" },
     { slug: "default" }
   ];

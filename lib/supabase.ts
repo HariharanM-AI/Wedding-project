@@ -3,6 +3,8 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 export const SUPABASE_PROJECT_ID = "fwybohsuhbzqifaqsajl";
 export const DEFAULT_SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
 
+export const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3eWJvaHN1aGJ6cWlmYXFzYWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzgxMTEsImV4cCI6MjEwNTgxNDExMX0.jZGrA3KtdlfTS9MBSzirQxpQMO-MPNOuTWucuRfyIrA";
+
 let cachedClient: SupabaseClient | null = null;
 let lastUsedKey: string | null = null;
 let lastUsedUrl: string | null = null;
@@ -21,7 +23,7 @@ export function getSupabaseAnonKey(): string | null {
     const localKey = localStorage.getItem("supabase_anon_key");
     if (localKey && localKey.trim()) return localKey.trim();
   }
-  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || null;
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 }
 
 export function setSupabaseAnonKey(key: string): void {

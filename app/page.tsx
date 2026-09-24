@@ -10,15 +10,20 @@ export default function Home() {
   const [wedding, setWedding] = useState<WeddingData>(defaultWeddingData);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    let active = true;
+    async function loadWedding() {
+      if (typeof window === "undefined") return;
       const params = new URLSearchParams(window.location.search);
-      const slug = params.get("w") || params.get("wedding");
-      if (slug) {
-        getWedding(slug).then((data) => {
-          if (data) setWedding(data);
-        });
+      const slug = params.get("w") || params.get("wedding") || defaultWeddingData.slug;
+      const data = await getWedding(slug);
+      if (active && data) {
+        setWedding(data);
       }
     }
+    loadWedding();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return <WeddingInvitation initialData={wedding} />;
