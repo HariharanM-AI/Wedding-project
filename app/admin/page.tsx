@@ -239,18 +239,17 @@ export default function AdminPage() {
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo & Wedding Title */}
           <div className="flex items-center gap-3.5">
-            <div className="font-serif text-2xl font-light text-[#55313c] px-3.5 py-1.5 border border-[#bc965e] bg-[#fffaf0] rounded shadow-inner flex items-center justify-center min-w-[52px]">
-              {currentWedding.monogram || "w"}
+            <div className="h-11 w-11 rounded-md border border-[#bc965e]/70 bg-[#fffaf0] p-1 shadow-xs flex items-center justify-center overflow-hidden shrink-0">
+              <img
+                src="/logo.png"
+                alt="Hari Wedding Project Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-serif text-xl sm:text-2xl font-normal text-[#55313c] tracking-tight">
-                  Royal Wedding Planner Studio
-                </h1>
-                <span className="text-[10px] tracking-widest uppercase font-serif px-2 py-0.5 rounded-full border border-[#bc965e] bg-[#f5e9cf] text-[#7a5938]">
-                  Live Studio
-                </span>
-              </div>
+              <h1 className="font-serif text-xl sm:text-2xl font-normal text-[#55313c] tracking-tight">
+                Royal Wedding Planner Studio
+              </h1>
               <p className="text-xs text-[#82704f] mt-0.5">
                 Client Project:{" "}
                 <span className="font-serif font-medium text-[#55313c]">
@@ -261,13 +260,13 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* Action Toolbar - Standardized Height (h-9), Font & Royal Styling */}
+          <div className="flex flex-wrap items-center gap-2">
             {/* Wedding Switcher */}
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs"
+              className="h-9 px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs"
             >
               {weddings.map((w) => (
                 <option key={w.slug} value={w.slug}>
@@ -279,7 +278,7 @@ export default function AdminPage() {
             {/* New Wedding */}
             <button
               onClick={() => setShowNewModal(true)}
-              className="px-3.5 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] transition-all rounded flex items-center gap-1.5 shadow-sm hover:shadow"
+              className="h-9 px-4 text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs"
             >
               <Plus size={14} />
               <span>New Wedding</span>
@@ -288,7 +287,7 @@ export default function AdminPage() {
             {/* Copy Link */}
             <button
               onClick={handleCopyClientLink}
-              className="px-3.5 py-2 text-xs font-serif border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f5e9cf] transition-all rounded flex items-center gap-1.5 text-[#55313c] shadow-xs"
+              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
               title="Copy shareable client link"
             >
               {copiedLink ? <Check size={14} className="text-emerald-700" /> : <Copy size={14} />}
@@ -300,7 +299,7 @@ export default function AdminPage() {
               href={clientUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2 text-xs font-serif border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f5e9cf] transition-all rounded flex items-center gap-1.5 text-[#55313c] shadow-xs"
+              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
             >
               <ExternalLink size={14} />
               <span>Open Invitation</span>
@@ -309,7 +308,7 @@ export default function AdminPage() {
             {/* Save All */}
             <button
               onClick={handleSave}
-              className="px-5 py-2 text-xs font-serif bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] transition-all rounded flex items-center gap-2 shadow-md hover:shadow-lg font-medium"
+              className="h-9 px-4 text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs"
             >
               <Save size={14} />
               <span>Save Changes</span>
@@ -319,7 +318,7 @@ export default function AdminPage() {
             {currentWedding.slug !== defaultWeddingData.slug && (
               <button
                 onClick={() => handleDeleteWedding(currentWedding.slug)}
-                className="p-2 text-xs text-rose-800 hover:bg-rose-100/60 rounded border border-rose-300 transition-all"
+                className="h-9 px-2.5 text-xs text-rose-800 hover:bg-rose-100/70 rounded-md border border-rose-300 transition-all flex items-center justify-center"
                 title="Delete this wedding project"
               >
                 <Trash2 size={14} />
