@@ -193,7 +193,7 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
         invitation_quote: wedding.invitationQuote || "",
         story_intro: wedding.storyIntro || "",
         final_heading: wedding.finalHeading || "",
-        final_subtext: wedding.finalSubtext || "",
+        final_subtext: wedding.finalSubtext || (wedding.brideName && wedding.groomName ? `Wedding of ${wedding.brideName} & ${wedding.groomName}` : ""),
         data: wedding,
         updated_at: wedding.updatedAt
       },

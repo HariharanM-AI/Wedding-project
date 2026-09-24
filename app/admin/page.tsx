@@ -220,9 +220,11 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
     weddingDate = generateIsoTimestamp(w.displayDate, w.muhurthamTime) || "";
   }
   const monogram = (w.monogram || "").toUpperCase();
+  const finalSubtext = w.finalSubtext || (w.brideName && w.groomName ? `Wedding of ${w.brideName} & ${w.groomName}` : "");
   return {
     ...w,
     monogram,
+    finalSubtext,
     weddingDate,
     events: cleanEvents
   };
@@ -339,6 +341,7 @@ export default function AdminPage() {
       brideName: bride,
       groomName: groom,
       monogram,
+      finalSubtext: `Wedding of ${bride} & ${groom}`,
       displayDate: "",
       weddingDate: "",
       locationLine: "",
@@ -777,6 +780,24 @@ export default function AdminPage() {
                       onChange={(e) => updateWedding({ finalHeading: e.target.value })}
                       className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                     />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#bc965e]/30">
+                  <div>
+                    <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
+                      Final Closing Subtext (Under "Save the Date")
+                    </label>
+                    <input
+                      type="text"
+                      value={currentWedding.finalSubtext || ""}
+                      onChange={(e) => updateWedding({ finalSubtext: e.target.value })}
+                      placeholder={`Wedding of ${currentWedding.brideName} & ${currentWedding.groomName}`}
+                      className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                    />
+                    <p className="text-xs text-[#82704f] mt-1 italic">
+                      Appears below the "Save the date" button in the final landscape scene.
+                    </p>
                   </div>
                 </div>
               </div>

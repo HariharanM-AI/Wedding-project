@@ -19,6 +19,7 @@ export const defaultWeddingData: WeddingData = {
   muhurthamTime: "Muhurtham · 9:15 am – 11:30 am",
   storyIntro: "Different paths, the same kind of forever.",
   finalHeading: "Our forever begins with you.",
+  finalSubtext: "Wedding of Jyothika S & Suriya S",
   events: [
     {
       id: "event-1",
