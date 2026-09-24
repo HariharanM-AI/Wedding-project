@@ -87,9 +87,9 @@ export async function listWeddings(): Promise<WeddingData[]> {
   if (!supabase) {
     const all = Object.values(localMap);
     all.sort((a, b) => {
-      if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
-      if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
-      return 0;
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return timeB - timeA;
     });
     return all;
   }
@@ -100,9 +100,9 @@ export async function listWeddings(): Promise<WeddingData[]> {
       console.warn("Supabase fetch failed, using local list:", error.message);
       const all = Object.values(localMap);
       all.sort((a, b) => {
-        if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
-        if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
-        return 0;
+        const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return timeB - timeA;
       });
       return all;
     }
@@ -110,7 +110,9 @@ export async function listWeddings(): Promise<WeddingData[]> {
     if (data && Array.isArray(data)) {
       for (const row of data) {
         if (row.data && row.slug) {
-          localMap[row.slug] = row.data as WeddingData;
+          const w = row.data as WeddingData;
+          if (row.updated_at) w.updatedAt = row.updated_at;
+          localMap[row.slug] = w;
         }
       }
       saveLocalWeddingsMap(localMap);
@@ -121,9 +123,9 @@ export async function listWeddings(): Promise<WeddingData[]> {
 
   const all = Object.values(localMap);
   all.sort((a, b) => {
-    if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
-    if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
-    return 0;
+    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+    return timeB - timeA;
   });
   return all;
 }

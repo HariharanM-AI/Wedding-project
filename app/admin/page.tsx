@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   Save,
   ExternalLink,
@@ -271,10 +271,11 @@ export default function AdminPage() {
   async function refreshWeddingList() {
     const list = await listWeddings();
     const sanitizedList = list.map(sanitizeWeddingData);
+    // Sort strictly by updatedAt descending so most recently edited projects come first
     sanitizedList.sort((a, b) => {
-      if (a.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return -1;
-      if (b.slug.toLowerCase() === defaultWeddingData.slug.toLowerCase()) return 1;
-      return 0;
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return timeB - timeA;
     });
     setWeddings(sanitizedList);
     if (sanitizedList.length > 0 && !currentWedding.slug) {
@@ -282,37 +283,80 @@ export default function AdminPage() {
     }
   }
 
+  // The last 5 edited projects, guaranteed to contain currentWedding so the dropdown always displays the opened client!
+  const recentWeddings = useMemo(() => {
+    const sorted = [...weddings].sort((a, b) => {
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    let top5 = sorted.slice(0, 5);
+
+    if (currentWedding.slug && !top5.some((w) => w.slug.toLowerCase() === currentWedding.slug.toLowerCase())) {
+      top5 = [currentWedding, ...top5.slice(0, 4)];
+    }
+
+    return top5;
+  }, [weddings, currentWedding]);
+
   function handleSelectWedding(slug: string) {
-    const found = weddings.find((w) => w.slug === slug);
+    const now = new Date().toISOString();
+    const found = weddings.find((w) => w.slug.toLowerCase() === slug.toLowerCase());
     if (found) {
       const cloned = JSON.parse(JSON.stringify(found));
+      cloned.updatedAt = now;
       const sanitized = sanitizeWeddingData(cloned);
       setCurrentWedding(sanitized);
       broadcastWeddingUpdate(sanitized);
+      setWeddings((prevList) => {
+        const remaining = prevList.filter((w) => w.slug.toLowerCase() !== slug.toLowerCase());
+        return [sanitized, ...remaining];
+      });
     } else {
       getWedding(slug).then((w) => {
         const sanitized = sanitizeWeddingData(w);
+        sanitized.updatedAt = now;
         setCurrentWedding(sanitized);
         broadcastWeddingUpdate(sanitized);
+        setWeddings((prevList) => {
+          const remaining = prevList.filter((x) => x.slug.toLowerCase() !== slug.toLowerCase());
+          return [sanitized, ...remaining];
+        });
       });
     }
   }
 
   // Real-time update helper: updates state & immediately broadcasts to any open preview/invitation tabs
   function updateWedding(patch: Partial<WeddingData>) {
+    const now = new Date().toISOString();
     setCurrentWedding((prev) => {
-      const updated = { ...prev, ...patch };
+      const updated = { ...prev, ...patch, updatedAt: now };
       broadcastWeddingUpdate(updated);
       return updated;
+    });
+
+    // Real-time reordering: update this project in weddings list so it moves to top in real-time
+    setWeddings((prevList) => {
+      const idx = prevList.findIndex((w) => w.slug.toLowerCase() === currentWedding.slug.toLowerCase());
+      if (idx >= 0) {
+        const item = { ...prevList[idx], ...patch, updatedAt: now };
+        const remaining = prevList.filter((w) => w.slug.toLowerCase() !== currentWedding.slug.toLowerCase());
+        return [item, ...remaining];
+      }
+      return prevList;
     });
   }
 
   async function handleSave() {
     setSaveStatus("Saving...");
-    const res = await saveWedding(currentWedding);
+    const now = new Date().toISOString();
+    const toSave = { ...currentWedding, updatedAt: now };
+    setCurrentWedding(toSave);
+    const res = await saveWedding(toSave);
     if (res.success) {
       setSaveStatus("Saved to Cloud & Live Synced! ✦");
-      refreshWeddingList();
+      await refreshWeddingList();
       setTimeout(() => setSaveStatus(""), 3500);
     } else {
       setSaveStatus("Saved locally ✦");
@@ -518,11 +562,11 @@ export default function AdminPage() {
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* ROYAL HEADER & ACTION BAR */}
-      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/92 backdrop-blur-md px-4 sm:px-8 lg:px-12 py-3.5 shadow-sm">
-        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5 shadow-sm">
+        <div className="w-full flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-3.5">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-4 sm:gap-5">
-            <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
+          <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
+            <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
               {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
@@ -532,7 +576,7 @@ export default function AdminPage() {
               />
             </div>
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#55313c] tracking-tight">
+              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-normal text-[#55313c] tracking-tight">
                 Royal Wedding Invitation Planner Studio
               </h1>
               <p className="text-xs sm:text-sm text-[#82704f] mt-0.5">
@@ -544,15 +588,16 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Action Toolbar - Standardized Height (h-9), Font & Royal Styling */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Recent 5 Clients Dropdown */}
+          {/* Action Toolbar - Perfectly Aligned, Unified Single-Row Bar */}
+          <div className="w-full 2xl:w-auto flex items-center justify-start 2xl:justify-end gap-2 overflow-x-auto no-scrollbar py-1">
+            {/* Recent 5 Edited Projects Dropdown */}
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="h-9 px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs"
+              className="h-9 px-2.5 sm:px-3 bg-[#fffdf7] border border-[#bc965e] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1 focus:ring-[#946f35] shadow-xs shrink-0 max-w-[210px] truncate"
+              title="Recent 5 Edited Projects"
             >
-              {weddings.slice(0, 5).map((w) => (
+              {recentWeddings.map((w) => (
                 <option key={w.slug} value={w.slug}>
                   {w.brideName} & {w.groomName}
                 </option>
@@ -562,7 +607,7 @@ export default function AdminPage() {
             {/* Past Clients */}
             <button
               onClick={() => setShowPastClientsModal(true)}
-              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
+              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
             >
               <Users size={14} />
               <span>Past Clients</span>
@@ -571,7 +616,7 @@ export default function AdminPage() {
             {/* New Wedding */}
             <button
               onClick={() => setShowNewModal(true)}
-              className="h-9 px-4 text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs"
+              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium bg-[#946f35] text-[#fff7df] hover:bg-[#765426] border border-[#765426] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap"
             >
               <Plus size={14} />
               <span>New Wedding</span>
@@ -580,7 +625,7 @@ export default function AdminPage() {
             {/* Copy Link */}
             <button
               onClick={handleCopyClientLink}
-              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
+              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
               title="Copy shareable client link"
             >
               {copiedLink ? <Check size={14} className="text-emerald-700" /> : <Copy size={14} />}
@@ -592,16 +637,16 @@ export default function AdminPage() {
               href={clientUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-9 px-4 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs"
+              className="h-9 px-3 sm:px-3.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#fffaf0] hover:bg-[#f6ebd8] transition-all rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap"
             >
               <ExternalLink size={14} />
               <span>Open Invitation</span>
             </a>
 
-            {/* Save All */}
+            {/* Save Changes - Positioned above as the LAST button, rightside of Open Invitation */}
             <button
               onClick={handleSave}
-              className="h-9 px-4 text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs"
+              className="h-9 px-3.5 sm:px-4 text-xs font-serif font-medium bg-[#55313c] text-[#fff3d7] hover:bg-[#7d4954] border border-[#3d0c1e] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap"
             >
               <Save size={14} />
               <span>Save Changes</span>
