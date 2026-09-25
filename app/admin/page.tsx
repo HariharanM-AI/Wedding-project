@@ -151,7 +151,7 @@ function RoyalDatePicker({
   }
 
   const selectClasses =
-    "w-full bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]";
+    "w-full bg-[#fffaf0] border border-[#bc965e] px-1.5 sm:px-3 py-2 text-xs sm:text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]";
 
   return (
     <div className={`grid grid-cols-3 gap-2 ${className || ""}`}>
@@ -197,6 +197,52 @@ function RoyalDatePicker({
         ))}
       </select>
     </div>
+  );
+}
+
+function SaveButton({
+  saveStatus,
+  handleSave,
+  compact = false
+}: {
+  saveStatus: string;
+  handleSave: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      onClick={handleSave}
+      disabled={saveStatus === "Saving..."}
+      className={`relative overflow-hidden h-8 text-[11.5px] sm:text-xs font-serif font-medium bg-[#fff8ea] hover:bg-[#f6ebd8] text-[#55313c] border border-[#bc965e] hover:border-[#946f35] ring-1 ring-[#bc965e]/40 hover:ring-[#946f35]/60 shadow-xs hover:shadow-md transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group ${
+        compact ? "px-2.5 sm:px-3" : "px-2.5 sm:px-3"
+      }`}
+      title="Save all changes"
+    >
+      {/* Luxury Shimmer Sweep Effect across the button on hover */}
+      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+
+      {saveStatus === "Saving..." ? (
+        <>
+          <Loader2 size={13} className="animate-spin text-[#946f35] relative z-10" />
+          <span className="relative z-10 text-[#55313c] font-medium">Saving...</span>
+        </>
+      ) : saveStatus && (saveStatus.startsWith("Saved") || saveStatus.includes("Successfully")) ? (
+        <>
+          <Check size={13} className="text-[#946f35] relative z-10 scale-110" />
+          <span className="relative z-10 text-[#55313c] font-semibold">
+            {compact ? "Saved! ✦" : "Successfully Saved! ✦"}
+          </span>
+        </>
+      ) : (
+        <>
+          <Save
+            size={13}
+            className="text-[#946f35] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200 relative z-10"
+          />
+          <span className="relative z-10 text-[#55313c] font-semibold">Save Changes</span>
+        </>
+      )}
+    </button>
   );
 }
 
@@ -564,8 +610,9 @@ export default function AdminPage() {
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* ROYAL HEADER & ACTION BAR */}
-      <header className="relative z-20 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 py-2.5 sm:py-3 shadow-sm">
-        <div className="w-full flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+      <header className="sticky top-0 z-30 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 py-2 sm:py-2.5 shadow-sm">
+        {/* DESKTOP / LAPTOP UNIFIED ROW (xl: and above) */}
+        <div className="hidden xl:flex w-full items-center justify-between gap-3">
           {/* Logo & Wedding Title */}
           <div className="flex items-center gap-3 sm:gap-3.5 shrink-0 min-w-0">
             <div className="h-11 w-11 sm:h-12 sm:w-12 md:h-13 md:w-13 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
@@ -591,7 +638,7 @@ export default function AdminPage() {
           </div>
 
           {/* Action Toolbar - Perfectly Aligned, Unified Single-Row Bar */}
-          <div className="flex items-center justify-start xl:justify-end gap-1.5 shrink-0 py-0.5">
+          <div className="flex items-center justify-end gap-1.5 shrink-0 py-0.5">
             {/* Recent 5 Edited Projects Dropdown */}
             <select
               value={currentWedding.slug}
@@ -649,60 +696,128 @@ export default function AdminPage() {
               <span>Open Invitation</span>
             </a>
 
-            {/* Save Changes - High-Impact Attractive Primary Action Button */}
-            <button
-              onClick={handleSave}
-              disabled={saveStatus === "Saving..."}
-              className="relative overflow-hidden h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-[#fff8ea] hover:bg-[#f6ebd8] text-[#55313c] border border-[#bc965e] hover:border-[#946f35] ring-1 ring-[#bc965e]/40 hover:ring-[#946f35]/60 shadow-xs hover:shadow-md transition-all duration-200 rounded-md flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group"
-              title="Save all changes"
-            >
-              {/* Luxury Shimmer Sweep Effect across the button on hover */}
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+            {/* Save Changes Button */}
+            <SaveButton saveStatus={saveStatus} handleSave={handleSave} />
+          </div>
+        </div>
 
-              {saveStatus === "Saving..." ? (
-                <>
-                  <Loader2 size={13} className="animate-spin text-[#946f35] relative z-10" />
-                  <span className="relative z-10 text-[#55313c] font-medium">Saving...</span>
-                </>
-              ) : saveStatus && (saveStatus.startsWith("Saved") || saveStatus.includes("Successfully")) ? (
-                <>
-                  <Check size={13} className="text-[#946f35] relative z-10 scale-110" />
-                  <span className="relative z-10 text-[#55313c] font-semibold">Successfully Saved! ✦</span>
-                </>
-              ) : (
-                <>
-                  <Save
-                    size={13}
-                    className="text-[#946f35] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200 relative z-10"
-                  />
-                  <span className="relative z-10 text-[#55313c] font-semibold">Save Changes</span>
-                </>
-              )}
+        {/* MOBILE & TABLET RESPONSIVE HEADER (< xl) */}
+        <div className="flex flex-col gap-2 xl:hidden w-full">
+          {/* Row 1: Logo & Title + Primary Save Changes Action */}
+          <div className="flex items-center justify-between gap-2.5 w-full">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-[#bc965e]/40 relative">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
+                <img
+                  src="/Hari_WEDDING_project_logo.png"
+                  alt="Hari Wedding Project Logo"
+                  className="w-full h-full object-contain scale-[1.2] filter drop-shadow-[0_2px_8px_rgba(188,150,94,0.45)] brightness-[1.06] contrast-[1.05] relative z-10"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-serif text-sm sm:text-base font-normal text-[#55313c] tracking-tight truncate leading-tight">
+                  Royal Wedding Planner Studio
+                </h1>
+                <p className="text-[11px] text-[#82704f] truncate leading-tight mt-0.5">
+                  Client:{" "}
+                  <span className="font-serif font-medium text-[#55313c]">
+                    {currentWedding.brideName} & {currentWedding.groomName}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* Primary Save Changes button pinned in top right */}
+            <div className="shrink-0">
+              <SaveButton saveStatus={saveStatus} handleSave={handleSave} compact={true} />
+            </div>
+          </div>
+
+          {/* Row 2: Project Dropdown & + New Wedding */}
+          <div className="flex items-center gap-2 w-full">
+            <div className="relative flex-1 min-w-0">
+              <select
+                value={currentWedding.slug}
+                onChange={(e) => handleSelectWedding(e.target.value)}
+                className="w-full h-8 px-2 sm:px-2.5 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs truncate cursor-pointer transition-all"
+                title="Recent 5 Edited Projects"
+              >
+                {recentWeddings.map((w) => (
+                  <option key={w.slug} value={w.slug}>
+                    {w.brideName} & {w.groomName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowNewModal(true)}
+              className="group h-8 px-2.5 sm:px-3 text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] hover:shadow-md hover:shadow-[#946f35]/35 active:scale-[0.98] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
+            >
+              <Plus size={13} className="group-hover:rotate-90 transition-transform duration-300" />
+              <span>+ New Wedding</span>
             </button>
+          </div>
+
+          {/* Row 3: Equal 3-Column Action Grid (Past Clients, Copy Link, Open Invitation) */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full">
+            {/* Past Clients */}
+            <button
+              onClick={() => setShowPastClientsModal(true)}
+              className="group h-8 px-1 sm:px-2 text-[11px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] rounded-md flex items-center justify-center gap-1 text-[#55313c] shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <Users size={12} className="text-[#82704f] group-hover:text-[#55313c] shrink-0" />
+              <span className="truncate">Past Clients</span>
+            </button>
+
+            {/* Copy Link */}
+            <button
+              onClick={handleCopyClientLink}
+              className="group h-8 px-1 sm:px-2 text-[11px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] rounded-md flex items-center justify-center gap-1 text-[#55313c] shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+              title="Copy shareable client link"
+            >
+              {copiedLink ? (
+                <Check size={12} className="text-emerald-700 scale-110 shrink-0" />
+              ) : (
+                <Copy size={12} className="text-[#82704f] group-hover:text-[#55313c] shrink-0" />
+              )}
+              <span className="truncate">{copiedLink ? "Copied!" : "Copy Link"}</span>
+            </button>
+
+            {/* Open Invitation */}
+            <a
+              href={clientUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group h-8 px-1 sm:px-2 text-[11px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] rounded-md flex items-center justify-center gap-1 text-[#55313c] shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <ExternalLink size={12} className="text-[#82704f] group-hover:text-[#55313c] shrink-0" />
+              <span className="truncate">Open Invite</span>
+            </a>
           </div>
         </div>
 
         {/* Live Notification Bar */}
         {saveStatus && (
-          <div className="w-full mt-2.5 pt-2 border-t border-[#bc965e]/30 flex items-center justify-between text-xs text-[#946f35] font-serif animate-fade-in">
+          <div className="w-full mt-2 pt-1.5 border-t border-[#bc965e]/30 flex items-center justify-between text-xs text-[#946f35] font-serif animate-fade-in">
             <span className="flex items-center gap-1.5 font-medium">
               <Sparkles size={13} className="text-[#b58e45]" /> {saveStatus}
             </span>
-            <span className="text-[#82704f] text-[11px]">All wedding invitation details are up to date</span>
+            <span className="text-[#82704f] text-[11px] hidden sm:inline">All wedding invitation details are up to date</span>
           </div>
         )}
       </header>
 
       {/* FULL-WIDTH RESPONSIVE STUDIO BODY (Edge-to-edge, smoothly filling the screen) */}
-      <main className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6">
-        <div className="w-full flex flex-col gap-6">
+      <main className="relative z-10 w-full px-3 sm:px-8 lg:px-12 py-3.5 sm:py-6">
+        <div className="w-full flex flex-col gap-4 sm:gap-6">
           {/* TABS SELECTOR - Fully Responsive, Equally Fills Entire Space Up to the End */}
-          <div className="w-full grid grid-cols-2 sm:grid-cols-4 border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-1.5 sm:p-2 gap-2 shadow-sm">
+          <div className="w-full grid grid-cols-2 sm:grid-cols-4 border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-1.5 sm:p-2 gap-1.5 sm:gap-2 shadow-sm">
             {[
-              { id: "couple", label: "Couple & Story", icon: Heart },
-              { id: "venue", label: "Muhurtham & Venue", icon: MapPin },
-              { id: "events", label: "Celebrations & Events", icon: Calendar },
-              { id: "photos", label: "Photos & Media", icon: ImageIcon }
+              { id: "couple", label: "Couple & Story", shortLabel: "Couple", icon: Heart },
+              { id: "venue", label: "Muhurtham & Venue", shortLabel: "Muhurtham", icon: MapPin },
+              { id: "events", label: "Celebrations & Events", shortLabel: "Events", icon: Calendar },
+              { id: "photos", label: "Photos & Media", shortLabel: "Photos", icon: ImageIcon }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -710,16 +825,17 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`group w-full flex items-center justify-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2.5 font-serif text-xs sm:text-sm transition-all duration-200 rounded-lg relative cursor-pointer ${
+                  className={`group w-full flex items-center justify-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 sm:py-2.5 font-serif text-xs sm:text-sm transition-all duration-200 rounded-lg relative cursor-pointer ${
                     isActive
                       ? "bg-gradient-to-r from-[#55313c] via-[#482530] to-[#55313c] text-[#fff7df] font-semibold shadow-md border border-[#bc965e]/60"
                       : "text-[#7c6341] hover:text-[#55313c] hover:bg-[#f6ebd8] hover:border-[#bc965e]/60 hover:shadow-xs hover:-translate-y-0.5 active:translate-y-0 border border-transparent font-medium"
                   }`}
                 >
-                  <Icon size={16} className={`shrink-0 transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
-                  <span className="truncate">{tab.label}</span>
+                  <Icon size={15} className={`shrink-0 transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
+                  <span className="hidden md:inline truncate">{tab.label}</span>
+                  <span className="md:hidden whitespace-nowrap">{tab.shortLabel}</span>
                   {isActive && (
-                    <span className="w-2 h-2 rounded-full shrink-0 bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
                   )}
                 </button>
               );
@@ -727,7 +843,7 @@ export default function AdminPage() {
           </div>
 
           {/* TAB CARD WORKSPACE */}
-          <div className="w-full bg-[#fffdf7]/85 backdrop-blur-md border border-[#bc965e]/80 p-6 sm:p-10 rounded-xl shadow-xl">
+          <div className="w-full bg-[#fffdf7]/85 backdrop-blur-md border border-[#bc965e]/80 p-4 sm:p-8 lg:p-10 rounded-xl shadow-xl">
 
             {/* TAB 1: COUPLE & STORY */}
             {activeTab === "couple" && (
@@ -1294,7 +1410,7 @@ export default function AdminPage() {
       {/* CREATE NEW WEDDING MODAL */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up">
             <div className="border-b border-[#bc965e]/40 pb-3">
               <h3 className="font-serif text-2xl text-[#55313c]">Create New Client Wedding</h3>
               <p className="text-xs text-[#82704f] mt-1 font-sans">
@@ -1359,7 +1475,7 @@ export default function AdminPage() {
       {/* PAST CLIENTS MODAL */}
       {showPastClientsModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-2xl w-full rounded-xl shadow-2xl space-y-5 animate-scale-up max-h-[85vh] flex flex-col">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-2xl w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up max-h-[90vh] flex flex-col">
             <div className="border-b border-[#bc965e]/40 pb-3 flex items-center justify-between">
               <div>
                 <h3 className="font-serif text-2xl text-[#55313c]">Past Clients</h3>
@@ -1463,7 +1579,7 @@ export default function AdminPage() {
       {/* PERMANENT CLIENT DELETION CONFIRMATION MODAL */}
       {clientToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up">
             <div className="border-b border-[#bc965e]/40 pb-3">
               <h3 className="font-serif text-2xl text-[#55313c]">Delete Client Project</h3>
               <p className="text-xs text-[#82704f] mt-1 font-sans">
@@ -1507,7 +1623,7 @@ export default function AdminPage() {
       {/* CELEBRATION REMOVAL CONFIRMATION MODAL */}
       {eventToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up">
             <div className="border-b border-[#bc965e]/40 pb-3">
               <h3 className="font-serif text-2xl text-[#55313c]">Remove Celebration Event</h3>
               <p className="text-xs text-[#82704f] mt-1 font-sans">
@@ -1544,7 +1660,7 @@ export default function AdminPage() {
       {/* ADD CELEBRATION MODAL */}
       {showAddEventModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-6 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-5 animate-scale-up">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up">
             <div className="border-b border-[#bc965e]/40 pb-3 flex items-center justify-between">
               <div>
                 <h3 className="font-serif text-2xl text-[#55313c]">Add New Celebration</h3>
