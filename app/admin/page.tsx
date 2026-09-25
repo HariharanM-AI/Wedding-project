@@ -266,8 +266,7 @@ function AccountMenu({
   adminSession,
   isOwner,
   onOpenSecurity,
-  onSignOut,
-  compact = false
+  onSignOut
 }: {
   adminSession: AdminUser | null;
   isOwner: boolean;
@@ -298,52 +297,29 @@ function AccountMenu({
   }, [isOpen]);
 
   const initial = adminSession?.displayName?.charAt(0).toUpperCase() || (isOwner ? "H" : "A");
-  const shortName = adminSession?.displayName?.split(" ")[0] || (isOwner ? "Hariharan" : "Admin");
+  const displayName = adminSession?.displayName || (isOwner ? "Hariharan (Owner)" : "Studio Admin");
 
   return (
-    <div className="relative shrink-0" ref={menuRef}>
-      {compact ? (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`h-8 px-2 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all ${
-            isOpen ? "ring-2 ring-[#946f35] bg-[#f6ebd8]" : ""
-          }`}
-          title="Account & Security Menu"
-        >
-          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#946f35] to-[#b88c45] text-[#fff8e7] flex items-center justify-center text-[10px] font-sans font-bold shadow-xs">
-            {initial}
-          </div>
-          <ChevronDown size={12} className={`text-[#82704f] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-        </button>
-      ) : (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] text-[#55313c] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${
-            isOpen ? "ring-1.5 ring-[#946f35] bg-[#f6ebd8] shadow-sm" : ""
-          }`}
-          title="Account & Security Settings"
-        >
-          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#946f35] to-[#b88c45] text-[#fff8e7] flex items-center justify-center text-[10px] font-sans font-bold shadow-xs">
-            {initial}
-          </div>
-          <span className="font-semibold text-[#55313c]">{shortName}</span>
-          {isOwner && (
-            <span className="text-[9px] font-sans uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[#946f35] text-[#fff8e7]">
-              Owner
-            </span>
-          )}
-          <ChevronDown size={12} className={`text-[#82704f] group-hover:text-[#55313c] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-        </button>
-      )}
+    <div className="relative shrink-0 flex items-center" ref={menuRef}>
+      {/* Circle H letter profile icon alone denoting the account */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-8 h-8 rounded-full bg-gradient-to-tr from-[#946f35] via-[#a77e3c] to-[#7f5d2b] text-[#fff8e7] flex items-center justify-center font-sans font-bold text-xs border-2 border-[#bc965e] shadow-xs hover:shadow-md hover:shadow-[#946f35]/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer ${
+          isOpen ? "ring-2 ring-[#946f35] ring-offset-2 ring-offset-[#fffcf4] scale-105" : ""
+        }`}
+        title={`${displayName} - Account Profile`}
+      >
+        <span>{initial}</span>
+      </button>
 
       {/* Luxury Royal Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-60 bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl shadow-[#946f35]/25 p-2 z-50 animate-scale-up origin-top-right">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl shadow-[#946f35]/25 p-2 z-50 animate-scale-up origin-top-right">
           {/* Header Info */}
           <div className="px-3 py-2 bg-[#fbf5e7] border border-[#bc965e]/40 rounded-lg mb-1.5">
             <div className="flex items-center justify-between gap-2">
               <span className="font-serif text-sm font-semibold text-[#55313c] truncate">
-                {adminSession?.displayName || (isOwner ? "Hariharan (Owner)" : "Studio Admin")}
+                {displayName}
               </span>
               {isOwner ? (
                 <span className="text-[9.5px] font-sans uppercase font-bold px-2 py-0.5 rounded bg-[#946f35] text-[#fff8e7] shrink-0">
@@ -357,7 +333,7 @@ function AccountMenu({
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10.5px] text-[#82704f] font-serif">Studio Authorized Session</span>
+              <span className="text-[10.5px] text-[#82704f] font-serif">Active Studio Session</span>
             </div>
           </div>
 
@@ -393,10 +369,7 @@ function AccountMenu({
               <div className="w-7 h-7 rounded-md bg-rose-50/80 border border-rose-200 flex items-center justify-center text-rose-700 group-hover:scale-105 transition-all">
                 <LogOut size={13} />
               </div>
-              <div>
-                <div className="font-medium text-rose-900 leading-tight">Sign Out</div>
-                <div className="text-[10px] text-rose-600/80 leading-tight mt-0.5 font-sans">Lock studio portal</div>
-              </div>
+              <span className="font-medium text-rose-900 leading-tight">Sign Out</span>
             </button>
           </div>
         </div>
