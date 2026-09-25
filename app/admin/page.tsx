@@ -24,7 +24,8 @@ import {
   LogOut,
   KeyRound,
   UserPlus,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from "lucide-react";
 import { WeddingData, WeddingEvent, WeddingPhotos } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
@@ -258,6 +259,149 @@ function SaveButton({
         </>
       )}
     </button>
+  );
+}
+
+function AccountMenu({
+  adminSession,
+  isOwner,
+  onOpenSecurity,
+  onSignOut,
+  compact = false
+}: {
+  adminSession: AdminUser | null;
+  isOwner: boolean;
+  onOpenSecurity: () => void;
+  onSignOut: () => void;
+  compact?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsOpen(false);
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const initial = adminSession?.displayName?.charAt(0).toUpperCase() || (isOwner ? "H" : "A");
+  const shortName = adminSession?.displayName?.split(" ")[0] || (isOwner ? "Hariharan" : "Admin");
+
+  return (
+    <div className="relative shrink-0" ref={menuRef}>
+      {compact ? (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`h-8 px-2 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all ${
+            isOpen ? "ring-2 ring-[#946f35] bg-[#f6ebd8]" : ""
+          }`}
+          title="Account & Security Menu"
+        >
+          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#946f35] to-[#b88c45] text-[#fff8e7] flex items-center justify-center text-[10px] font-sans font-bold shadow-xs">
+            {initial}
+          </div>
+          <ChevronDown size={12} className={`text-[#82704f] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+      ) : (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] text-[#55313c] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${
+            isOpen ? "ring-1.5 ring-[#946f35] bg-[#f6ebd8] shadow-sm" : ""
+          }`}
+          title="Account & Security Settings"
+        >
+          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#946f35] to-[#b88c45] text-[#fff8e7] flex items-center justify-center text-[10px] font-sans font-bold shadow-xs">
+            {initial}
+          </div>
+          <span className="font-semibold text-[#55313c]">{shortName}</span>
+          {isOwner && (
+            <span className="text-[9px] font-sans uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[#946f35] text-[#fff8e7]">
+              Owner
+            </span>
+          )}
+          <ChevronDown size={12} className={`text-[#82704f] group-hover:text-[#55313c] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+      )}
+
+      {/* Luxury Royal Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-60 bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl shadow-[#946f35]/25 p-2 z-50 animate-scale-up origin-top-right">
+          {/* Header Info */}
+          <div className="px-3 py-2 bg-[#fbf5e7] border border-[#bc965e]/40 rounded-lg mb-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-serif text-sm font-semibold text-[#55313c] truncate">
+                {adminSession?.displayName || (isOwner ? "Hariharan (Owner)" : "Studio Admin")}
+              </span>
+              {isOwner ? (
+                <span className="text-[9.5px] font-sans uppercase font-bold px-2 py-0.5 rounded bg-[#946f35] text-[#fff8e7] shrink-0">
+                  Owner
+                </span>
+              ) : (
+                <span className="text-[9.5px] font-sans uppercase font-medium px-2 py-0.5 rounded bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50 shrink-0">
+                  {adminSession?.role || "Admin"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10.5px] text-[#82704f] font-serif">Studio Authorized Session</span>
+            </div>
+          </div>
+
+          {/* Menu Items */}
+          <div className="space-y-1">
+            {isOwner && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenSecurity();
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-serif text-[#55313c] hover:bg-[#f6ebd8] hover:text-[#3d1a24] rounded-md transition-colors flex items-center gap-2.5 cursor-pointer group"
+              >
+                <div className="w-7 h-7 rounded-md bg-[#fffaf0] border border-[#bc965e]/60 flex items-center justify-center text-[#946f35] group-hover:scale-105 group-hover:bg-[#f5e9cf] transition-all">
+                  <ShieldCheck size={14} />
+                </div>
+                <div>
+                  <div className="font-medium text-[#55313c] leading-tight">Owner Security Portal</div>
+                  <div className="text-[10px] text-[#82704f] leading-tight mt-0.5 font-sans">Manage logins & credentials</div>
+                </div>
+              </button>
+            )}
+
+            {isOwner && <div className="border-t border-[#bc965e]/30 my-1" />}
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onSignOut();
+              }}
+              className="w-full text-left px-3 py-2 text-xs font-serif text-rose-800 hover:bg-rose-50 hover:text-rose-950 rounded-md transition-colors flex items-center gap-2.5 cursor-pointer group"
+            >
+              <div className="w-7 h-7 rounded-md bg-rose-50/80 border border-rose-200 flex items-center justify-center text-rose-700 group-hover:scale-105 transition-all">
+                <LogOut size={13} />
+              </div>
+              <div>
+                <div className="font-medium text-rose-900 leading-tight">Sign Out</div>
+                <div className="text-[10px] text-rose-600/80 leading-tight mt-0.5 font-sans">Lock studio portal</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -765,10 +909,10 @@ export default function AdminPage() {
       {/* ROYAL HEADER & ACTION BAR */}
       <header className="sticky top-0 z-30 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 py-2 sm:py-2.5 shadow-sm">
         {/* DESKTOP / LAPTOP UNIFIED ROW (xl: and above) */}
-        <div className="hidden xl:flex w-full items-center justify-between gap-3">
+        <div className="hidden xl:flex w-full items-center justify-between gap-2">
           {/* Logo & Wedding Title */}
-          <div className="flex items-center gap-3 sm:gap-3.5 shrink-0 min-w-0">
-            <div className="h-11 w-11 sm:h-12 sm:w-12 md:h-13 md:w-13 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
+          <div className="flex items-center gap-2.5 shrink min-w-0 mr-2">
+            <div className="h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl border-2 border-[#bc965e] bg-gradient-to-b from-[#fffcf5] via-[#fcf5e7] to-[#f5e7cd] p-1 shadow-md shadow-[#946f35]/20 flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105 ring-1.5 ring-[#bc965e]/40 relative group">
               {/* Radiant warm golden glow backdrop matching royal parchment and temple gold */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.95)_0%,_rgba(251,243,227,0.5)_60%,_transparent_100%)] pointer-events-none" />
               <img
@@ -778,11 +922,11 @@ export default function AdminPage() {
               />
             </div>
             <div className="min-w-0">
-              <h1 className="font-serif text-lg sm:text-xl md:text-2xl font-normal text-[#55313c] tracking-tight truncate">
-                Royal Wedding Invitation Planner Studio
+              <h1 className="font-serif text-base sm:text-lg 2xl:text-xl font-normal text-[#55313c] tracking-tight truncate">
+                Royal Wedding Planner Studio
               </h1>
-              <p className="text-xs text-[#82704f] mt-0.5 truncate">
-                Client Project:{" "}
+              <p className="text-[11px] text-[#82704f] mt-0.5 truncate">
+                Client:{" "}
                 <span className="font-serif font-medium text-[#55313c]">
                   {currentWedding.brideName} & {currentWedding.groomName}
                 </span>
@@ -796,7 +940,7 @@ export default function AdminPage() {
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="h-8 px-2 sm:px-2.5 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] hover:shadow-xs text-[11.5px] sm:text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs shrink-0 max-w-[170px] sm:max-w-[190px] truncate cursor-pointer transition-all duration-200"
+              className="h-8 px-2 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] hover:shadow-xs text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs shrink-0 max-w-[140px] 2xl:max-w-[175px] truncate cursor-pointer transition-all duration-200"
               title="Recent 5 Edited Projects"
             >
               {recentWeddings.map((w) => (
@@ -809,7 +953,7 @@ export default function AdminPage() {
             {/* Past Clients */}
             <button
               onClick={() => setShowPastClientsModal(true)}
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
               <Users size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200" />
               <span>Past Clients</span>
@@ -818,7 +962,7 @@ export default function AdminPage() {
             {/* New Wedding */}
             <button
               onClick={() => setShowNewModal(true)}
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] hover:border-[#533c19] hover:shadow-md hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] hover:border-[#533c19] hover:shadow-md hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
               <Plus size={13} className="group-hover:rotate-90 group-hover:scale-115 transition-transform duration-300" />
               <span>New Wedding</span>
@@ -827,7 +971,7 @@ export default function AdminPage() {
             {/* Copy Link */}
             <button
               onClick={handleCopyClientLink}
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
               title="Copy shareable client link"
             >
               {copiedLink ? (
@@ -835,7 +979,7 @@ export default function AdminPage() {
               ) : (
                 <Copy size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:scale-110 transition-transform duration-200" />
               )}
-              <span>{copiedLink ? "Link Copied!" : "Copy Client Link"}</span>
+              <span>{copiedLink ? "Copied!" : "Copy Link"}</span>
             </button>
 
             {/* Open Invitation */}
@@ -843,39 +987,25 @@ export default function AdminPage() {
               href={clientUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              className="group h-8 px-2 xl:px-2.5 text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
             >
               <ExternalLink size={13} className="text-[#82704f] group-hover:text-[#55313c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
               <span>Open Invitation</span>
             </a>
 
-            {/* Admin Security / Credentials - Only visible to Hariharan (Permanent Owner) */}
-            {isOwner && (
-              <button
-                onClick={handleOpenSecurityModal}
-                className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
-                title="Owner Security Portal"
-              >
-                <ShieldCheck size={13} className="text-[#946f35] group-hover:scale-110 transition-transform duration-200" />
-                <span>Security</span>
-              </button>
-            )}
+            {/* Save Changes Button - Pinned & Fully Visible */}
+            <SaveButton saveStatus={saveStatus} handleSave={handleSave} />
 
-            {/* Sign Out */}
-            <button
-              onClick={() => {
+            {/* Owner Account & Security Dropdown Menu */}
+            <AccountMenu
+              adminSession={adminSession}
+              isOwner={isOwner}
+              onOpenSecurity={handleOpenSecurityModal}
+              onSignOut={() => {
                 logoutAdmin();
                 setIsAuthenticated(false);
               }}
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-rose-100/70 hover:border-rose-300 hover:text-rose-950 text-rose-800 hover:shadow-md hover:shadow-rose-900/10 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
-              title="Lock studio and sign out"
-            >
-              <LogOut size={13} className="group-hover:scale-110 transition-transform duration-200" />
-              <span>Sign Out</span>
-            </button>
-
-            {/* Save Changes Button */}
-            <SaveButton saveStatus={saveStatus} handleSave={handleSave} />
+            />
           </div>
         </div>
 
@@ -905,28 +1035,19 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Primary Save Changes button pinned in top right + Security & Sign Out */}
+            {/* Primary Save Changes button pinned in top right + Compact Account Menu */}
             <div className="flex items-center gap-1.5 shrink-0">
-              {isOwner && (
-                <button
-                  onClick={handleOpenSecurityModal}
-                  className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
-                  title="Owner Security Portal"
-                >
-                  <ShieldCheck size={14} className="text-[#946f35]" />
-                </button>
-              )}
-              <button
-                onClick={() => {
+              <SaveButton saveStatus={saveStatus} handleSave={handleSave} compact={true} />
+              <AccountMenu
+                adminSession={adminSession}
+                isOwner={isOwner}
+                compact={true}
+                onOpenSecurity={handleOpenSecurityModal}
+                onSignOut={() => {
                   logoutAdmin();
                   setIsAuthenticated(false);
                 }}
-                className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-rose-50 text-rose-800 flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
-                title="Sign Out"
-              >
-                <LogOut size={13} />
-              </button>
-              <SaveButton saveStatus={saveStatus} handleSave={handleSave} compact={true} />
+              />
             </div>
           </div>
 
