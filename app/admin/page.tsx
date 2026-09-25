@@ -2411,32 +2411,24 @@ export default function AdminPage() {
 
       {/* PERMANENT DELETE ADMINISTRATOR CONFIRMATION DIALOG */}
       {deleteConfirmUser && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-5 sm:p-6 max-w-md w-full rounded-xl shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0 mt-0.5">
-                <Trash2 size={18} />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-serif text-lg font-semibold text-[#55313c] leading-snug">
-                  Delete Administrator Profile?
-                </h4>
-                <p className="text-xs text-[#82704f] mt-1.5 font-sans leading-relaxed">
-                  Are you sure you want to permanently delete the administrator profile for{" "}
-                  <strong className="text-[#55313c] font-serif font-semibold">{deleteConfirmUser.displayName}</strong>{" "}
-                  (<span className="font-mono text-[11.5px] text-[#55313c]">{deleteConfirmUser.username}</span>)?
-                </p>
-                <p className="text-[11px] text-rose-800 font-sans mt-2 font-medium">
-                  This action cannot be undone. They will immediately lose access to the studio.
-                </p>
-              </div>
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-8 max-w-md w-full rounded-xl shadow-2xl space-y-4 sm:space-y-5 animate-scale-up">
+            <div className="border-b border-[#bc965e]/40 pb-3">
+              <h3 className="font-serif text-2xl text-[#55313c]">Delete Administrator Profile</h3>
+              <p className="text-xs text-[#82704f] mt-1 font-sans">
+                Are you sure you want to permanently delete this administrator profile? This action cannot be undone.
+              </p>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#bc965e]/30">
+            <div className="p-3 bg-[#fbf5e7] border border-[#bc965e]/40 rounded text-xs font-serif text-[#55313c]">
+              Administrator: <span className="font-medium">{deleteConfirmUser.displayName} ({deleteConfirmUser.username})</span>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#bc965e]/30">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmUser(null)}
-                className="px-4 py-2 text-xs font-serif border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] rounded-md transition-all cursor-pointer shadow-xs"
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7] cursor-pointer transition-colors"
               >
                 Cancel
               </button>
@@ -2447,7 +2439,7 @@ export default function AdminPage() {
                   setDeleteConfirmUser(null);
                   await handleDeleteAdmin(targetUser);
                 }}
-                className="px-4 py-2 text-xs font-serif bg-rose-700 hover:bg-rose-800 text-white border border-rose-900 rounded-md font-medium shadow-sm hover:shadow-md transition-all cursor-pointer"
+                className="px-5 py-2 text-xs font-serif bg-rose-800 text-white rounded hover:bg-rose-900 font-medium cursor-pointer transition-colors"
               >
                 Delete Permanently
               </button>
