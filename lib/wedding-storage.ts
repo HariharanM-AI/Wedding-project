@@ -14,7 +14,7 @@ function getLocalWeddingsMap(): Record<string, WeddingData> {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!raw) return { [defaultWeddingData.slug]: defaultWeddingData };
     const parsed = JSON.parse(raw);
-    if (!parsed[defaultWeddingData.slug]) {
+    if (!parsed[defaultWeddingData.slug] || (parsed[defaultWeddingData.slug].events && parsed[defaultWeddingData.slug].events.length < defaultWeddingData.events.length)) {
       parsed[defaultWeddingData.slug] = defaultWeddingData;
     }
     memoryMap = parsed;

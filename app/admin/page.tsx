@@ -415,7 +415,25 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
 
 export default function AdminPage() {
   const [weddings, setWeddings] = useState<WeddingData[]>([]);
-  const [currentWedding, setCurrentWedding] = useState<WeddingData>(() => sanitizeWeddingData(defaultWeddingData));
+  const [currentWedding, setCurrentWedding] = useState<WeddingData>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const targetSlug = params.get("edit") || localStorage.getItem("admin_active_wedding_slug");
+        if (targetSlug) {
+          const raw = localStorage.getItem("custom_weddings_data");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const found = parsed[targetSlug] || Object.values(parsed).find((w: any) => w?.slug?.toLowerCase() === targetSlug.toLowerCase());
+            if (found) {
+              return sanitizeWeddingData(found as WeddingData);
+            }
+          }
+        }
+      } catch {}
+    }
+    return sanitizeWeddingData(defaultWeddingData);
+  });
   const [activeTab, setActiveTab] = useState<"couple" | "venue" | "events" | "photos">("couple");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
@@ -483,20 +501,17 @@ export default function AdminPage() {
     }
 
     setAdminBranding();
-    refreshWeddingList();
 
+    let initialSlug: string | undefined;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      const editSlug = params.get("edit");
-      if (editSlug) {
-        getWedding(editSlug).then((data) => {
-          if (data) setCurrentWedding(sanitizeWeddingData(data));
-        });
-      }
+      initialSlug = params.get("edit") || localStorage.getItem("admin_active_wedding_slug") || undefined;
     }
+
+    refreshWeddingList(initialSlug);
   }, []);
 
-  async function refreshWeddingList() {
+  async function refreshWeddingList(preferredSlug?: string) {
     const list = await listWeddings();
     const sanitizedList = list.map(sanitizeWeddingData);
     // Sort strictly by updatedAt descending so most recently edited projects come first
@@ -506,8 +521,28 @@ export default function AdminPage() {
       return timeB - timeA;
     });
     setWeddings(sanitizedList);
-    if (sanitizedList.length > 0 && !currentWedding.slug) {
-      setCurrentWedding(sanitizedList[0]);
+
+    if (sanitizedList.length > 0) {
+      let targetSlug = preferredSlug;
+      if (!targetSlug && typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        targetSlug = params.get("edit") || localStorage.getItem("admin_active_wedding_slug") || currentWedding.slug;
+      }
+
+      let matched: WeddingData | undefined;
+      if (targetSlug) {
+        matched = sanitizedList.find((w) => w.slug.toLowerCase() === targetSlug?.toLowerCase());
+      }
+      if (!matched) {
+        matched = sanitizedList[0];
+      }
+
+      if (matched) {
+        setCurrentWedding(matched);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("admin_active_wedding_slug", matched.slug);
+        }
+      }
     }
   }
 
@@ -529,6 +564,9 @@ export default function AdminPage() {
   }, [weddings, currentWedding]);
 
   function handleSelectWedding(slug: string) {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("admin_active_wedding_slug", slug);
+    }
     const now = new Date().toISOString();
     const found = weddings.find((w) => w.slug.toLowerCase() === slug.toLowerCase());
     if (found) {
@@ -581,10 +619,13 @@ export default function AdminPage() {
     const now = new Date().toISOString();
     const toSave = { ...currentWedding, updatedAt: now };
     setCurrentWedding(toSave);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("admin_active_wedding_slug", toSave.slug);
+    }
     const res = await saveWedding(toSave);
     if (res.success) {
       setSaveStatus("Successfully Saved! ✦");
-      await refreshWeddingList();
+      await refreshWeddingList(toSave.slug);
       setTimeout(() => setSaveStatus(""), 3500);
     } else {
       setSaveStatus("Successfully Saved! ✦");
@@ -651,7 +692,10 @@ export default function AdminPage() {
     };
 
     saveWedding(newWedding).then(() => {
-      refreshWeddingList();
+      if (typeof window !== "undefined") {
+        localStorage.setItem("admin_active_wedding_slug", slug);
+      }
+      refreshWeddingList(slug);
       setCurrentWedding(newWedding);
       broadcastWeddingUpdate(newWedding);
       setShowNewModal(false);
@@ -670,6 +714,9 @@ export default function AdminPage() {
     const remaining = weddings.filter((w) => w.slug.toLowerCase() !== slug.toLowerCase());
     setWeddings(remaining);
     const next = remaining[0] || defaultWeddingData;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("admin_active_wedding_slug", next.slug);
+    }
     setCurrentWedding(next);
     broadcastWeddingUpdate(next);
   }
