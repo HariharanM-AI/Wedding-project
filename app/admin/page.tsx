@@ -435,6 +435,7 @@ export default function AdminPage() {
 
   // Security & Admin Management Modal
   const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
+  const [securityActiveTab, setSecurityActiveTab] = useState<"accounts" | "create">("accounts");
   const [adminUsersList, setAdminUsersList] = useState<AdminUser[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState<boolean>(false);
   const [securityStatusMsg, setSecurityStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -750,6 +751,7 @@ export default function AdminPage() {
   async function handleOpenSecurityModal() {
     if (!isOwner) return;
     setShowSecurityModal(true);
+    setSecurityActiveTab("accounts");
     setSecurityStatusMsg(null);
     setNewAdminUsername("");
     setNewAdminDisplayName("");
@@ -795,6 +797,7 @@ export default function AdminPage() {
       setNewAdminRole("");
       const updated = await listAdminUsers();
       setAdminUsersList(updated);
+      setSecurityActiveTab("accounts");
     } else {
       setSecurityStatusMsg({ type: "error", text: res.error || "Failed to create administrator." });
     }
@@ -2044,211 +2047,304 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div className="overflow-y-auto space-y-6 flex-1 pr-1">
-              {/* Section 1: Existing Administrators Table */}
-              <div>
-                <h4 className="font-serif text-xs sm:text-sm font-semibold text-[#55313c] uppercase tracking-wider mb-2">
-                  Authorized Administrators & Owners
-                </h4>
-                {isLoadingAdmins ? (
-                  <div className="py-6 flex items-center justify-center gap-2 text-xs font-serif text-[#82704f]">
-                    <Loader2 size={14} className="animate-spin text-[#946f35]" />
-                    <span>Loading administrators...</span>
-                  </div>
-                ) : adminUsersList.length === 0 ? (
-                  <p className="text-xs font-serif text-[#82704f] py-3 italic">No additional administrator accounts registered.</p>
-                ) : (
-                  <div className="divide-y divide-[#bc965e]/30 border border-[#bc965e]/60 rounded-lg overflow-hidden bg-[#fffaf0]">
-                    {adminUsersList.map((adm) => {
-                      const isPermanentOwner = adm.username.toLowerCase() === "hariharan";
-                      const isCurrent = adminSession?.username?.toLowerCase() === adm.username.toLowerCase();
-                      return (
-                        <div key={adm.username} className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-serif text-sm font-semibold text-[#55313c]">{adm.displayName}</span>
-                              {/* Show Owner badge ONLY for Hariharan */}
-                              {isPermanentOwner ? (
-                                <span className="text-[10px] font-sans uppercase font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df] shadow-xs">
-                                  Owner
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50">
-                                  {adm.role || "Administrator"}
-                                </span>
-                              )}
-                              {isCurrent && (
-                                <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                  Current User
-                                </span>
-                              )}
+            {/* Segmented Tabs (Option 1) */}
+            <div className="flex items-center gap-2 border-b border-[#bc965e]/40 pb-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setSecurityActiveTab("accounts");
+                  setSecurityStatusMsg(null);
+                }}
+                style={{
+                  backgroundColor: securityActiveTab === "accounts" ? "#8a642e" : "#fffaf0",
+                  color: securityActiveTab === "accounts" ? "#ffffff" : "#55313c",
+                  borderColor: securityActiveTab === "accounts" ? "#6d4e21" : "rgba(188, 150, 94, 0.6)"
+                }}
+                className={`px-3.5 py-1.5 text-xs font-serif font-medium rounded-lg border transition-all duration-200 cursor-pointer flex items-center gap-2 shadow-xs ${
+                  securityActiveTab === "accounts"
+                    ? "shadow-sm shadow-[#8a642e]/30 scale-[1.02]"
+                    : "hover:bg-[#f6ebd8] hover:border-[#946f35]"
+                }`}
+              >
+                <ShieldCheck size={14} className={securityActiveTab === "accounts" ? "text-white" : "text-[#946f35]"} />
+                <span>Authorized Accounts</span>
+                <span
+                  style={{
+                    backgroundColor: securityActiveTab === "accounts" ? "rgba(255, 255, 255, 0.25)" : "#f5e9cf",
+                    color: securityActiveTab === "accounts" ? "#ffffff" : "#6f5b3b"
+                  }}
+                  className="text-[10px] px-1.5 py-0.5 rounded-full font-sans font-semibold leading-none"
+                >
+                  {adminUsersList.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSecurityActiveTab("create");
+                  setSecurityStatusMsg(null);
+                }}
+                style={{
+                  backgroundColor: securityActiveTab === "create" ? "#8a642e" : "#fffaf0",
+                  color: securityActiveTab === "create" ? "#ffffff" : "#55313c",
+                  borderColor: securityActiveTab === "create" ? "#6d4e21" : "rgba(188, 150, 94, 0.6)"
+                }}
+                className={`px-3.5 py-1.5 text-xs font-serif font-medium rounded-lg border transition-all duration-200 cursor-pointer flex items-center gap-1.5 shadow-xs ${
+                  securityActiveTab === "create"
+                    ? "shadow-sm shadow-[#8a642e]/30 scale-[1.02]"
+                    : "hover:bg-[#f6ebd8] hover:border-[#946f35]"
+                }`}
+              >
+                <UserPlus size={14} className={securityActiveTab === "create" ? "text-white" : "text-[#946f35]"} />
+                <span>+ Add New Administrator</span>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-4 flex-1 pr-1">
+              {/* TAB 1: AUTHORIZED ACCOUNTS LIST */}
+              {securityActiveTab === "accounts" && (
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-serif text-xs sm:text-sm font-semibold text-[#55313c] uppercase tracking-wider">
+                        Authorized Administrators & Owners ({adminUsersList.length})
+                      </h4>
+                      <button
+                        onClick={() => {
+                          setSecurityActiveTab("create");
+                          setSecurityStatusMsg(null);
+                        }}
+                        className="text-xs font-serif text-[#946f35] hover:text-[#55313c] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Plus size={12} />
+                        <span>Add Administrator</span>
+                      </button>
+                    </div>
+
+                    {isLoadingAdmins ? (
+                      <div className="py-6 flex items-center justify-center gap-2 text-xs font-serif text-[#82704f]">
+                        <Loader2 size={14} className="animate-spin text-[#946f35]" />
+                        <span>Loading administrators...</span>
+                      </div>
+                    ) : adminUsersList.length === 0 ? (
+                      <p className="text-xs font-serif text-[#82704f] py-3 italic">No additional administrator accounts registered.</p>
+                    ) : (
+                      <div className="divide-y divide-[#bc965e]/30 border border-[#bc965e]/60 rounded-lg overflow-hidden bg-[#fffaf0]">
+                        {adminUsersList.map((adm) => {
+                          const isPermanentOwner = adm.username.toLowerCase() === "hariharan";
+                          const isCurrent = adminSession?.username?.toLowerCase() === adm.username.toLowerCase();
+                          return (
+                            <div key={adm.username} className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-serif text-sm font-semibold text-[#55313c]">{adm.displayName}</span>
+                                  {/* Show Owner badge ONLY for Hariharan */}
+                                  {isPermanentOwner ? (
+                                    <span className="text-[10px] font-sans uppercase font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df] shadow-xs">
+                                      Owner
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50">
+                                      {adm.role || "Administrator"}
+                                    </span>
+                                  )}
+                                  {isCurrent && (
+                                    <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                      Current User
+                                    </span>
+                                  )}
+                                </div>
+                                {adm.createdAt && (
+                                  <p className="text-[11px] text-[#82704f] mt-0.5 font-serif">
+                                    Created: {new Date(adm.createdAt).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setChangePasswordTargetUser(adm.username);
+                                    setNewPasswordVal("");
+                                  }}
+                                  className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0"
+                                >
+                                  <KeyRound size={12} />
+                                  <span>Set Password</span>
+                                </button>
+                                {/* Hariharan is permanent and non-deletable */}
+                                {!isPermanentOwner && !isCurrent && (
+                                  <button
+                                    onClick={() => handleDeleteAdmin(adm.username)}
+                                    className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer shadow-xs"
+                                    title="Delete administrator"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            {adm.createdAt && (
-                              <p className="text-[11px] text-[#82704f] mt-0.5 font-serif">
-                                Created: {new Date(adm.createdAt).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setChangePasswordTargetUser(adm.username);
-                                setNewPasswordVal("");
-                              }}
-                              className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0"
-                            >
-                              <KeyRound size={12} />
-                              <span>Set Password</span>
-                            </button>
-                            {/* Hariharan is permanent and non-deletable */}
-                            {!isPermanentOwner && !isCurrent && (
-                              <button
-                                onClick={() => handleDeleteAdmin(adm.username)}
-                                className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer shadow-xs"
-                                title="Delete administrator"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Section 2: Update Password Form */}
-              {changePasswordTargetUser && (
-                <div className="p-4 bg-[#fbf5e7] border border-[#bc965e] rounded-lg space-y-3 animate-fade-in">
-                  <div className="flex items-center justify-between">
-                    <h5 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
-                      <KeyRound size={13} className="text-[#946f35]" />
-                      <span>Update Password for {changePasswordTargetUser}</span>
-                    </h5>
-                    <button
-                      onClick={() => setChangePasswordTargetUser("")}
-                      className="text-xs text-[#82704f] hover:text-[#55313c] underline cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <form onSubmit={handleChangePassword} className="flex flex-col sm:flex-row gap-2.5">
-                    <input
-                      type="password"
-                      required
-                      minLength={6}
-                      value={newPasswordVal}
-                      onChange={(e) => setNewPasswordVal(e.target.value)}
-                      placeholder="Enter new password (min. 6 characters)"
-                      className="flex-1 bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                    />
-                    <button
-                      type="submit"
-                      disabled={isUpdatingPassword || !newPasswordVal.trim()}
-                      className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                      {isUpdatingPassword ? "Saving..." : "Save Password"}
-                    </button>
-                  </form>
+                  {/* Inline Update Password Form */}
+                  {changePasswordTargetUser && (
+                    <div className="p-4 bg-[#fbf5e7] border border-[#bc965e] rounded-lg space-y-3 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
+                          <KeyRound size={13} className="text-[#946f35]" />
+                          <span>Update Password for {changePasswordTargetUser}</span>
+                        </h5>
+                        <button
+                          onClick={() => setChangePasswordTargetUser("")}
+                          className="text-xs text-[#82704f] hover:text-[#55313c] underline cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <form onSubmit={handleChangePassword} className="flex flex-col sm:flex-row gap-2.5">
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          value={newPasswordVal}
+                          onChange={(e) => setNewPasswordVal(e.target.value)}
+                          placeholder="Enter new password (min. 6 characters)"
+                          className="flex-1 bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isUpdatingPassword || !newPasswordVal.trim()}
+                          className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                          {isUpdatingPassword ? "Saving..." : "Save Password"}
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Section 3: Add New Administrator Form */}
-              <div className="p-4 bg-[#fffaf0] border border-[#bc965e]/70 rounded-lg space-y-3">
-                <h4 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
-                  <UserPlus size={14} className="text-[#946f35]" />
-                  <span>Create New Administrator Credential</span>
-                </h4>
-                <form onSubmit={handleCreateNewAdmin} autoComplete="off" className="space-y-3 pt-1">
-                  {/* Hidden dummy fields to prevent modern browser autofill */}
-                  <input type="text" name="fake_username_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
-                  <input type="password" name="fake_password_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                        Username (Login ID)
-                      </label>
-                      <input
-                        type="text"
-                        id="portal_admin_user_input"
-                        name="portal_admin_user_input"
-                        autoComplete="new-password"
-                        required
-                        value={newAdminUsername}
-                        onChange={(e) => setNewAdminUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                        placeholder="e.g. planner_sarah"
-                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                        Full Display Name
-                      </label>
-                      <input
-                        type="text"
-                        id="portal_admin_name_input"
-                        name="portal_admin_name_input"
-                        autoComplete="off"
-                        required
-                        value={newAdminDisplayName}
-                        onChange={(e) => setNewAdminDisplayName(e.target.value)}
-                        placeholder="e.g. Sarah Jenkins"
-                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                      />
-                    </div>
+              {/* TAB 2: CREATE NEW ADMINISTRATOR CREDENTIAL */}
+              {securityActiveTab === "create" && (
+                <div className="p-4 sm:p-5 bg-[#fffaf0] border border-[#bc965e]/70 rounded-lg space-y-4 animate-fade-in">
+                  <div>
+                    <h4 className="font-serif text-sm font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
+                      <UserPlus size={15} className="text-[#946f35]" />
+                      <span>Create New Administrator Credential</span>
+                    </h4>
+                    <p className="text-xs text-[#82704f] mt-0.5 font-sans">
+                      New credentials allow team members to access and edit wedding projects in the studio.
+                    </p>
                   </div>
+                  <form onSubmit={handleCreateNewAdmin} autoComplete="off" className="space-y-3.5 pt-1">
+                    {/* Hidden dummy fields to prevent modern browser autofill */}
+                    <input type="text" name="fake_username_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+                    <input type="password" name="fake_password_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                        Initial Password
-                      </label>
-                      <input
-                        type="password"
-                        id="portal_admin_pwd_input"
-                        name="portal_admin_pwd_input"
-                        autoComplete="new-password"
-                        required
-                        minLength={6}
-                        value={newAdminPassword}
-                        onChange={(e) => setNewAdminPassword(e.target.value)}
-                        placeholder="Minimum 6 characters"
-                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                          Username (Login ID)
+                        </label>
+                        <input
+                          type="text"
+                          id="portal_admin_user_input"
+                          name="portal_admin_user_input"
+                          autoComplete="new-password"
+                          required
+                          value={newAdminUsername}
+                          onChange={(e) => setNewAdminUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                          placeholder="e.g. planner_sarah"
+                          className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                          Full Display Name
+                        </label>
+                        <input
+                          type="text"
+                          id="portal_admin_name_input"
+                          name="portal_admin_name_input"
+                          autoComplete="off"
+                          required
+                          value={newAdminDisplayName}
+                          onChange={(e) => setNewAdminDisplayName(e.target.value)}
+                          placeholder="e.g. Sarah Jenkins"
+                          className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
-                        Access Role
-                      </label>
-                      <input
-                        type="text"
-                        id="portal_admin_role_input"
-                        name="portal_admin_role_input"
-                        autoComplete="off"
-                        value={newAdminRole}
-                        onChange={(e) => setNewAdminRole(e.target.value)}
-                        placeholder="e.g. Wedding Coordinator, Assistant, Manager"
-                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] placeholder:text-[#ab9776]/70"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="submit"
-                      disabled={isCreatingAdmin || !newAdminUsername.trim() || !newAdminPassword.trim()}
-                      className="relative overflow-hidden px-5 py-2.5 text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] via-[#a67e3d] to-[#7f5d2b] hover:from-[#a77e3c] hover:via-[#b88c45] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] rounded-md shadow-sm hover:shadow-lg hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1.5 group"
-                    >
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
-                      <Plus size={13} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" />
-                      <span className="relative z-10">{isCreatingAdmin ? "Creating..." : "Create Credential"}</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                          Initial Password
+                        </label>
+                        <input
+                          type="password"
+                          id="portal_admin_pwd_input"
+                          name="portal_admin_pwd_input"
+                          autoComplete="new-password"
+                          required
+                          minLength={6}
+                          value={newAdminPassword}
+                          onChange={(e) => setNewAdminPassword(e.target.value)}
+                          placeholder="Minimum 6 characters"
+                          className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                          Access Role
+                        </label>
+                        <input
+                          type="text"
+                          id="portal_admin_role_input"
+                          name="portal_admin_role_input"
+                          autoComplete="off"
+                          value={newAdminRole}
+                          onChange={(e) => setNewAdminRole(e.target.value)}
+                          placeholder="e.g. Wedding Coordinator, Assistant, Manager"
+                          className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] placeholder:text-[#ab9776]/70"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSecurityActiveTab("accounts");
+                          setSecurityStatusMsg(null);
+                        }}
+                        className="text-xs font-serif text-[#82704f] hover:text-[#55313c] underline cursor-pointer"
+                      >
+                        Back to Accounts List
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isCreatingAdmin || !newAdminUsername.trim() || !newAdminPassword.trim()}
+                        style={{
+                          background: "linear-gradient(to right, #946f35, #a67e3d, #7f5d2b)",
+                          color: "#fff8e7",
+                          borderColor: "#6b4e23"
+                        }}
+                        className="relative overflow-hidden px-5 py-2.5 text-xs font-serif font-medium border rounded-md shadow-sm hover:shadow-lg hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1.5 group"
+                      >
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+                        <Plus size={13} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" />
+                        <span className="relative z-10">{isCreatingAdmin ? "Creating..." : "Create Credential"}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-3 border-t border-[#bc965e]/30">
