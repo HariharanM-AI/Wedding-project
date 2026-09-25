@@ -755,7 +755,7 @@ export default function AdminPage() {
               className="group h-8 px-2.5 sm:px-3 text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] hover:shadow-md hover:shadow-[#946f35]/35 active:scale-[0.98] transition-all rounded-md flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
             >
               <Plus size={13} className="group-hover:rotate-90 transition-transform duration-300" />
-              <span>+ New Wedding</span>
+              <span>New Wedding</span>
             </button>
           </div>
 
@@ -832,8 +832,8 @@ export default function AdminPage() {
                   }`}
                 >
                   <Icon size={15} className={`shrink-0 transition-transform duration-200 ${isActive ? "text-[#dfbe7d] scale-105" : "text-[#946f35] group-hover:scale-115"}`} />
-                  <span className="hidden md:inline truncate">{tab.label}</span>
-                  <span className="md:hidden whitespace-nowrap">{tab.shortLabel}</span>
+                  <span className="hidden lg:inline truncate">{tab.label}</span>
+                  <span className="lg:hidden whitespace-nowrap">{tab.shortLabel}</span>
                   {isActive && (
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 bg-[#dfbe7d] shadow-[0_0_8px_#dfbe7d] ml-0.5 animate-pulse" />
                   )}
