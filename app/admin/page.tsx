@@ -275,6 +275,7 @@ function AccountMenu({
   compact?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -297,39 +298,39 @@ function AccountMenu({
   }, [isOpen]);
 
   const initial = adminSession?.displayName?.charAt(0).toUpperCase() || (isOwner ? "H" : "A");
-  const displayName = adminSession?.displayName || (isOwner ? "Hariharan (Owner)" : "Studio Admin");
+  const rawName = adminSession?.displayName || (isOwner ? "Hariharan" : "Studio Admin");
+  const cleanName = rawName.replace(/\s*\(Owner\)/i, "").trim();
 
   return (
     <div className="relative shrink-0 flex items-center" ref={menuRef}>
-      {/* Circle H letter profile icon alone denoting the account */}
+      {/* Circle H profile icon with royal brown background, white text and luxury hover */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-8 h-8 rounded-full bg-gradient-to-tr from-[#946f35] via-[#a77e3c] to-[#7f5d2b] text-[#fff8e7] flex items-center justify-center font-sans font-bold text-xs border-2 border-[#bc965e] shadow-xs hover:shadow-md hover:shadow-[#946f35]/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer ${
-          isOpen ? "ring-2 ring-[#946f35] ring-offset-2 ring-offset-[#fffcf4] scale-105" : ""
-        }`}
-        title={`${displayName} - Account Profile`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          backgroundColor: isHovered ? "#351a0e" : "#542c18",
+          color: "#ffffff",
+          borderColor: isHovered ? "#d4af37" : "#bc965e"
+        }}
+        className={`w-8 h-8 rounded-full flex items-center justify-center font-serif font-bold text-sm border shadow-xs transition-all duration-200 cursor-pointer ${
+          isHovered ? "scale-110 shadow-md shadow-[#542c18]/45" : ""
+        } ${isOpen ? "ring-2 ring-[#946f35] ring-offset-2 ring-offset-[#fffcf4] scale-105" : ""}`}
+        title={`${cleanName} - Studio Profile`}
+        aria-label={`${cleanName} Studio Profile`}
       >
-        <span>{initial}</span>
+        <span style={{ color: "#ffffff" }} className="text-white font-semibold leading-none select-none">
+          {initial}
+        </span>
       </button>
 
       {/* Luxury Royal Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl shadow-[#946f35]/25 p-2 z-50 animate-scale-up origin-top-right">
-          {/* Header Info */}
+        <div className="absolute right-0 top-full mt-2 w-60 sm:w-64 bg-[#fffdf7] border-2 border-[#bc965e] rounded-xl shadow-2xl shadow-[#946f35]/25 p-2 z-50 animate-scale-up origin-top-right">
+          {/* Header Info - Name alone, NO owner badge */}
           <div className="px-3 py-2 bg-[#fbf5e7] border border-[#bc965e]/40 rounded-lg mb-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-serif text-sm font-semibold text-[#55313c] truncate">
-                {displayName}
-              </span>
-              {isOwner ? (
-                <span className="text-[9.5px] font-sans uppercase font-bold px-2 py-0.5 rounded bg-[#946f35] text-[#fff8e7] shrink-0">
-                  Owner
-                </span>
-              ) : (
-                <span className="text-[9.5px] font-sans uppercase font-medium px-2 py-0.5 rounded bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50 shrink-0">
-                  {adminSession?.role || "Admin"}
-                </span>
-              )}
+            <div className="font-serif text-sm font-semibold text-[#55313c] truncate">
+              {cleanName}
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -880,7 +881,7 @@ export default function AdminPage() {
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* ROYAL HEADER & ACTION BAR */}
-      <header className="sticky top-0 z-30 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 py-2 sm:py-2.5 shadow-sm">
+      <header className="sticky top-0 z-30 border-b border-[#bc965e]/60 bg-[#fffcf4]/95 backdrop-blur-md px-3 sm:px-5 lg:px-6 xl:px-8 py-2 sm:py-2.5 shadow-sm">
         {/* DESKTOP / LAPTOP UNIFIED ROW (xl: and above) */}
         <div className="hidden xl:flex w-full items-center justify-between gap-2">
           {/* Logo & Wedding Title */}
@@ -907,13 +908,13 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Action Toolbar - Perfectly Aligned, Unified Single-Row Bar */}
-          <div className="flex items-center justify-end gap-1.5 shrink-0 py-0.5">
+          {/* Action Toolbar - Moved slightly left with safe margin so H button is safely inside */}
+          <div className="flex items-center justify-end gap-1 xl:gap-1.5 shrink-0 py-0.5 mr-2 sm:mr-3 xl:mr-5">
             {/* Recent 5 Edited Projects Dropdown */}
             <select
               value={currentWedding.slug}
               onChange={(e) => handleSelectWedding(e.target.value)}
-              className="h-8 px-2 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] hover:shadow-xs text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs shrink-0 max-w-[140px] 2xl:max-w-[175px] truncate cursor-pointer transition-all duration-200"
+              className="h-8 px-2 bg-[#fffdf7] border border-[#bc965e] hover:border-[#8e6b30] hover:bg-[#fff9ed] hover:shadow-xs text-xs font-serif text-[#55313c] rounded-md focus:outline-none focus:ring-1.5 focus:ring-[#946f35] focus:border-[#946f35] shadow-xs shrink-0 max-w-[125px] xl:max-w-[138px] 2xl:max-w-[165px] truncate cursor-pointer transition-all duration-200"
               title="Recent 5 Edited Projects"
             >
               {recentWeddings.map((w) => (
@@ -969,16 +970,18 @@ export default function AdminPage() {
             {/* Save Changes Button - Pinned & Fully Visible */}
             <SaveButton saveStatus={saveStatus} handleSave={handleSave} />
 
-            {/* Owner Account & Security Dropdown Menu */}
-            <AccountMenu
-              adminSession={adminSession}
-              isOwner={isOwner}
-              onOpenSecurity={handleOpenSecurityModal}
-              onSignOut={() => {
-                logoutAdmin();
-                setIsAuthenticated(false);
-              }}
-            />
+            {/* Owner Account Profile H Button - Safely Positioned Inside with divider */}
+            <div className="pl-2 xl:pl-2.5 border-l border-[#bc965e]/50 flex items-center shrink-0">
+              <AccountMenu
+                adminSession={adminSession}
+                isOwner={isOwner}
+                onOpenSecurity={handleOpenSecurityModal}
+                onSignOut={() => {
+                  logoutAdmin();
+                  setIsAuthenticated(false);
+                }}
+              />
+            </div>
           </div>
         </div>
 
