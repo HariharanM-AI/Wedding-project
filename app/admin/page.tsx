@@ -2186,7 +2186,7 @@ export default function AdminPage() {
                         }}
                         className="text-xs font-serif text-[#946f35] hover:text-[#55313c] font-medium flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Plus size={12} />
+                        <Plus size={12}/>
                         <span>Add Administrator</span>
                       </button>
                     </div>

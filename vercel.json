@@ -7,8 +7,8 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/w/:slug",
-      "destination": "/w/Jyothika-Suriya.html"
+      "source": "/w/:slug*",
+      "destination": "/w/default"
     }
   ]
 }
