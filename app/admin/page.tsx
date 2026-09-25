@@ -15,6 +15,7 @@ import {
   Heart,
   Sparkles,
   Eye,
+  EyeOff,
   ScrollText,
   Compass,
   Users,
@@ -450,7 +451,22 @@ export default function AdminPage() {
   // Change password form state
   const [changePasswordTargetUser, setChangePasswordTargetUser] = useState<string>("");
   const [newPasswordVal, setNewPasswordVal] = useState("");
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Delete admin confirmation modal state
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<{ username: string; displayName: string } | null>(null);
+
+  // Auto-dismiss success notification after 4 seconds
+  useEffect(() => {
+    if (securityStatusMsg && securityStatusMsg.type === "success") {
+      const timer = setTimeout(() => {
+        setSecurityStatusMsg(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [securityStatusMsg]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<keyof WeddingPhotos | null>(null);
@@ -753,6 +769,10 @@ export default function AdminPage() {
     setShowSecurityModal(true);
     setSecurityActiveTab("accounts");
     setSecurityStatusMsg(null);
+    setChangePasswordTargetUser("");
+    setShowUpdatePassword(false);
+    setShowCreatePassword(false);
+    setDeleteConfirmUser(null);
     setNewAdminUsername("");
     setNewAdminDisplayName("");
     setNewAdminPassword("");
@@ -795,6 +815,7 @@ export default function AdminPage() {
       setNewAdminDisplayName("");
       setNewAdminPassword("");
       setNewAdminRole("");
+      setShowCreatePassword(false);
       const updated = await listAdminUsers();
       setAdminUsersList(updated);
       setSecurityActiveTab("accounts");
@@ -815,6 +836,7 @@ export default function AdminPage() {
       setSecurityStatusMsg({ type: "success", text: `Password for "${targetUser}" updated successfully.` });
       setNewPasswordVal("");
       setChangePasswordTargetUser("");
+      setShowUpdatePassword(false);
     } else {
       setSecurityStatusMsg({ type: "error", text: res.error || "Failed to update password." });
     }
@@ -2167,18 +2189,19 @@ export default function AdminPage() {
                                   onClick={() => {
                                     setChangePasswordTargetUser(adm.username);
                                     setNewPasswordVal("");
+                                    setShowUpdatePassword(false);
                                   }}
                                   className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0"
                                 >
                                   <KeyRound size={12} />
-                                  <span>Set Password</span>
+                                  <span>Set New Password</span>
                                 </button>
                                 {/* Hariharan is permanent and non-deletable */}
                                 {!isPermanentOwner && !isCurrent && (
                                   <button
-                                    onClick={() => handleDeleteAdmin(adm.username)}
+                                    onClick={() => setDeleteConfirmUser({ username: adm.username, displayName: adm.displayName })}
                                     className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer shadow-xs"
-                                    title="Delete administrator"
+                                    title="Delete administrator profile"
                                   >
                                     <Trash2 size={13} />
                                   </button>
@@ -2191,7 +2214,7 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  {/* Inline Update Password Form */}
+                  {/* Inline Update Password Form with Eye Icon Toggle */}
                   {changePasswordTargetUser && (
                     <div className="p-4 bg-[#fbf5e7] border border-[#bc965e] rounded-lg space-y-3 animate-fade-in">
                       <div className="flex items-center justify-between">
@@ -2200,26 +2223,43 @@ export default function AdminPage() {
                           <span>Update Password for {changePasswordTargetUser}</span>
                         </h5>
                         <button
-                          onClick={() => setChangePasswordTargetUser("")}
+                          onClick={() => {
+                            setChangePasswordTargetUser("");
+                            setShowUpdatePassword(false);
+                          }}
                           className="text-xs text-[#82704f] hover:text-[#55313c] underline cursor-pointer"
                         >
                           Cancel
                         </button>
                       </div>
                       <form onSubmit={handleChangePassword} className="flex flex-col sm:flex-row gap-2.5">
-                        <input
-                          type="password"
-                          required
-                          minLength={6}
-                          value={newPasswordVal}
-                          onChange={(e) => setNewPasswordVal(e.target.value)}
-                          placeholder="Enter new password (min. 6 characters)"
-                          className="flex-1 bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                        />
+                        <div className="relative flex-1">
+                          <input
+                            type={showUpdatePassword ? "text" : "password"}
+                            required
+                            minLength={6}
+                            value={newPasswordVal}
+                            onChange={(e) => setNewPasswordVal(e.target.value)}
+                            placeholder="Enter new password (min. 6 characters)"
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] pl-3 pr-9 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowUpdatePassword(!showUpdatePassword)}
+                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[#82704f] hover:text-[#55313c] transition-colors cursor-pointer"
+                            title={showUpdatePassword ? "Hide password" : "Show password"}
+                          >
+                            {showUpdatePassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
+                        </div>
                         <button
                           type="submit"
                           disabled={isUpdatingPassword || !newPasswordVal.trim()}
-                          className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0"
+                          style={{
+                            background: "linear-gradient(to right, #946f35, #7f5d2b)",
+                            color: "#fff7df"
+                          }}
+                          className="px-4 py-1 text-xs font-serif rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0"
                         >
                           {isUpdatingPassword ? "Saving..." : "Save Password"}
                         </button>
@@ -2286,18 +2326,28 @@ export default function AdminPage() {
                         <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
                           Initial Password
                         </label>
-                        <input
-                          type="password"
-                          id="portal_admin_pwd_input"
-                          name="portal_admin_pwd_input"
-                          autoComplete="new-password"
-                          required
-                          minLength={6}
-                          value={newAdminPassword}
-                          onChange={(e) => setNewAdminPassword(e.target.value)}
-                          placeholder="Minimum 6 characters"
-                          className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showCreatePassword ? "text" : "password"}
+                            id="portal_admin_pwd_input"
+                            name="portal_admin_pwd_input"
+                            autoComplete="new-password"
+                            required
+                            minLength={6}
+                            value={newAdminPassword}
+                            onChange={(e) => setNewAdminPassword(e.target.value)}
+                            placeholder="Minimum 6 characters"
+                            className="w-full bg-[#fffdf7] border border-[#bc965e] pl-3 pr-9 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCreatePassword(!showCreatePassword)}
+                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[#82704f] hover:text-[#55313c] transition-colors cursor-pointer"
+                            title={showCreatePassword ? "Hide password" : "Show password"}
+                          >
+                            {showCreatePassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
@@ -2353,6 +2403,53 @@ export default function AdminPage() {
                 className="px-6 py-2.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#f7eedc] text-[#55313c] rounded-md hover:bg-[#ecd7b0] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
               >
                 Close Security Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PERMANENT DELETE ADMINISTRATOR CONFIRMATION DIALOG */}
+      {deleteConfirmUser && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-5 sm:p-6 max-w-md w-full rounded-xl shadow-2xl space-y-4 animate-scale-up">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0 mt-0.5">
+                <Trash2 size={18} />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-serif text-lg font-semibold text-[#55313c] leading-snug">
+                  Delete Administrator Profile?
+                </h4>
+                <p className="text-xs text-[#82704f] mt-1.5 font-sans leading-relaxed">
+                  Are you sure you want to permanently delete the administrator profile for{" "}
+                  <strong className="text-[#55313c] font-serif font-semibold">{deleteConfirmUser.displayName}</strong>{" "}
+                  (<span className="font-mono text-[11.5px] text-[#55313c]">{deleteConfirmUser.username}</span>)?
+                </p>
+                <p className="text-[11px] text-rose-800 font-sans mt-2 font-medium">
+                  This action cannot be undone. They will immediately lose access to the studio.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#bc965e]/30">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmUser(null)}
+                className="px-4 py-2 text-xs font-serif border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] rounded-md transition-all cursor-pointer shadow-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetUser = deleteConfirmUser.username;
+                  setDeleteConfirmUser(null);
+                  await handleDeleteAdmin(targetUser);
+                }}
+                className="px-4 py-2 text-xs font-serif bg-rose-700 hover:bg-rose-800 text-white border border-rose-900 rounded-md font-medium shadow-sm hover:shadow-md transition-all cursor-pointer"
+              >
+                Delete Permanently
               </button>
             </div>
           </div>
