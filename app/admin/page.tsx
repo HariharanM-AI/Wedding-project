@@ -2097,7 +2097,7 @@ export default function AdminPage() {
                 }`}
               >
                 <UserPlus size={14} className={securityActiveTab === "create" ? "text-white" : "text-[#946f35]"} />
-                <span>+ Add New Administrator</span>
+                <span>Add New Administrator</span>
               </button>
             </div>
 
@@ -2108,7 +2108,7 @@ export default function AdminPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-serif text-xs sm:text-sm font-semibold text-[#55313c] uppercase tracking-wider">
-                        Authorized Administrators & Owners ({adminUsersList.length})
+                        Authorized Administrators & Owner ({adminUsersList.length})
                       </h4>
                       <button
                         onClick={() => {
