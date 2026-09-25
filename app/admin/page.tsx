@@ -313,6 +313,7 @@ export default function AdminPage() {
   // Admin Authentication & Session Security
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [adminSession, setAdminSession] = useState<AdminUser | null>(null);
+  const isOwner = adminSession?.username?.toLowerCase() === "hariharan";
 
   // Security & Admin Management Modal
   const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
@@ -324,7 +325,7 @@ export default function AdminPage() {
   const [newAdminUsername, setNewAdminUsername] = useState("");
   const [newAdminDisplayName, setNewAdminDisplayName] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
-  const [newAdminRole, setNewAdminRole] = useState<"admin" | "owner">("admin");
+  const [newAdminRole, setNewAdminRole] = useState<string>("");
   const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
 
   // Change password form state
@@ -629,8 +630,13 @@ export default function AdminPage() {
   }
 
   async function handleOpenSecurityModal() {
+    if (!isOwner) return;
     setShowSecurityModal(true);
     setSecurityStatusMsg(null);
+    setNewAdminUsername("");
+    setNewAdminDisplayName("");
+    setNewAdminPassword("");
+    setNewAdminRole("");
     setIsLoadingAdmins(true);
     const list = await listAdminUsers();
     setAdminUsersList(list);
@@ -639,21 +645,36 @@ export default function AdminPage() {
 
   async function handleCreateNewAdmin(e: React.FormEvent) {
     e.preventDefault();
-    if (!newAdminUsername.trim() || !newAdminPassword.trim()) return;
+    if (!isOwner) return;
+    const cleanUser = newAdminUsername.trim().toLowerCase();
+    const cleanPass = newAdminPassword.trim();
+    const trimmedRole = newAdminRole.trim();
+
+    if (!cleanUser || !cleanPass) return;
+
+    if (/owner/i.test(trimmedRole)) {
+      setSecurityStatusMsg({
+        type: "error",
+        text: "The 'Owner' role is reserved exclusively for Hariharan. Please specify a different access role."
+      });
+      return;
+    }
+
     setIsCreatingAdmin(true);
     setSecurityStatusMsg(null);
     const res = await createAdminUser({
-      username: newAdminUsername,
-      displayName: newAdminDisplayName,
-      password: newAdminPassword,
-      role: newAdminRole
+      username: cleanUser,
+      displayName: newAdminDisplayName.trim() || cleanUser,
+      password: cleanPass,
+      role: trimmedRole || "Administrator"
     });
     setIsCreatingAdmin(false);
     if (res.success) {
-      setSecurityStatusMsg({ type: "success", text: `Administrator "${newAdminUsername}" created successfully.` });
+      setSecurityStatusMsg({ type: "success", text: `Administrator credential "${cleanUser}" created successfully.` });
       setNewAdminUsername("");
       setNewAdminDisplayName("");
       setNewAdminPassword("");
+      setNewAdminRole("");
       const updated = await listAdminUsers();
       setAdminUsersList(updated);
     } else {
@@ -828,15 +849,17 @@ export default function AdminPage() {
               <span>Open Invitation</span>
             </a>
 
-            {/* Admin Security / Credentials */}
-            <button
-              onClick={handleOpenSecurityModal}
-              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
-              title="Manage administrator logins & passwords"
-            >
-              <ShieldCheck size={13} className="text-[#946f35] group-hover:scale-110 transition-transform duration-200" />
-              <span>Security</span>
-            </button>
+            {/* Admin Security / Credentials - Only visible to Hariharan (Permanent Owner) */}
+            {isOwner && (
+              <button
+                onClick={handleOpenSecurityModal}
+                className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+                title="Owner Security Portal"
+              >
+                <ShieldCheck size={13} className="text-[#946f35] group-hover:scale-110 transition-transform duration-200" />
+                <span>Security</span>
+              </button>
+            )}
 
             {/* Sign Out */}
             <button
@@ -884,13 +907,15 @@ export default function AdminPage() {
 
             {/* Primary Save Changes button pinned in top right + Security & Sign Out */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={handleOpenSecurityModal}
-                className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
-                title="Admin security and credentials"
-              >
-                <ShieldCheck size={14} className="text-[#946f35]" />
-              </button>
+              {isOwner && (
+                <button
+                  onClick={handleOpenSecurityModal}
+                  className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
+                  title="Owner Security Portal"
+                >
+                  <ShieldCheck size={14} className="text-[#946f35]" />
+                </button>
+              )}
               <button
                 onClick={() => {
                   logoutAdmin();
@@ -1894,15 +1919,15 @@ export default function AdminPage() {
               <div>
                 <h3 className="font-serif text-xl sm:text-2xl text-[#55313c] flex items-center gap-2">
                   <ShieldCheck size={20} className="text-[#946f35]" />
-                  <span>Admin & Owner Security Portal</span>
+                  <span>Owner Security Portal</span>
                 </h3>
                 <p className="text-xs text-[#82704f] mt-0.5 font-sans">
-                  Manage login credentials, authorized owner accounts, and passwords.
+                  Manage login credentials, authorized administrator accounts, and passwords.
                 </p>
               </div>
               <button
                 onClick={() => setShowSecurityModal(false)}
-                className="p-1.5 text-[#82704f] hover:text-[#55313c] rounded hover:bg-[#f5e9cf]"
+                className="p-1.5 text-[#82704f] hover:text-[#55313c] rounded hover:bg-[#f5e9cf] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1938,22 +1963,23 @@ export default function AdminPage() {
                 ) : (
                   <div className="divide-y divide-[#bc965e]/30 border border-[#bc965e]/60 rounded-lg overflow-hidden bg-[#fffaf0]">
                     {adminUsersList.map((adm) => {
+                      const isPermanentOwner = adm.username.toLowerCase() === "hariharan";
                       const isCurrent = adminSession?.username?.toLowerCase() === adm.username.toLowerCase();
                       return (
                         <div key={adm.username} className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-serif text-sm font-semibold text-[#55313c]">{adm.displayName}</span>
-                              <span className="font-mono text-xs text-[#82704f]">(@{adm.username})</span>
-                              <span
-                                className={`text-[10px] font-sans uppercase font-medium px-2 py-0.5 rounded ${
-                                  adm.role === "owner"
-                                    ? "bg-[#946f35] text-[#fff7df]"
-                                    : "bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50"
-                                }`}
-                              >
-                                {adm.role}
-                              </span>
+                              {/* Show Owner badge ONLY for Hariharan */}
+                              {isPermanentOwner ? (
+                                <span className="text-[10px] font-sans uppercase font-medium px-2 py-0.5 rounded bg-[#946f35] text-[#fff7df] shadow-xs">
+                                  Owner
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50">
+                                  {adm.role || "Administrator"}
+                                </span>
+                              )}
                               {isCurrent && (
                                 <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
                                   Current User
@@ -1973,15 +1999,16 @@ export default function AdminPage() {
                                 setChangePasswordTargetUser(adm.username);
                                 setNewPasswordVal("");
                               }}
-                              className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1"
+                              className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0"
                             >
                               <KeyRound size={12} />
                               <span>Set Password</span>
                             </button>
-                            {!isCurrent && (
+                            {/* Hariharan is permanent and non-deletable */}
+                            {!isPermanentOwner && !isCurrent && (
                               <button
                                 onClick={() => handleDeleteAdmin(adm.username)}
-                                className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer"
+                                className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer shadow-xs"
                                 title="Delete administrator"
                               >
                                 <Trash2 size={13} />
@@ -2001,11 +2028,11 @@ export default function AdminPage() {
                   <div className="flex items-center justify-between">
                     <h5 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
                       <KeyRound size={13} className="text-[#946f35]" />
-                      <span>Update Password for @{changePasswordTargetUser}</span>
+                      <span>Update Password for {changePasswordTargetUser}</span>
                     </h5>
                     <button
                       onClick={() => setChangePasswordTargetUser("")}
-                      className="text-xs text-[#82704f] hover:text-[#55313c] underline"
+                      className="text-xs text-[#82704f] hover:text-[#55313c] underline cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -2023,7 +2050,7 @@ export default function AdminPage() {
                     <button
                       type="submit"
                       disabled={isUpdatingPassword || !newPasswordVal.trim()}
-                      className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0"
                     >
                       {isUpdatingPassword ? "Saving..." : "Save Password"}
                     </button>
@@ -2037,10 +2064,11 @@ export default function AdminPage() {
                   <UserPlus size={14} className="text-[#946f35]" />
                   <span>Create New Administrator Credential</span>
                 </h4>
-                <p className="text-[11px] text-[#82704f] font-serif">
-                  Only existing authorized owners can generate new credentials. Users cannot self-register from the login page.
-                </p>
-                <form onSubmit={handleCreateNewAdmin} className="space-y-3 pt-1">
+                <form onSubmit={handleCreateNewAdmin} autoComplete="off" className="space-y-3 pt-1">
+                  {/* Hidden dummy fields to prevent modern browser autofill */}
+                  <input type="text" name="fake_username_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+                  <input type="password" name="fake_password_prevent_autofill" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
@@ -2048,6 +2076,9 @@ export default function AdminPage() {
                       </label>
                       <input
                         type="text"
+                        id="portal_admin_user_input"
+                        name="portal_admin_user_input"
+                        autoComplete="new-password"
                         required
                         value={newAdminUsername}
                         onChange={(e) => setNewAdminUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
@@ -2061,6 +2092,9 @@ export default function AdminPage() {
                       </label>
                       <input
                         type="text"
+                        id="portal_admin_name_input"
+                        name="portal_admin_name_input"
+                        autoComplete="off"
                         required
                         value={newAdminDisplayName}
                         onChange={(e) => setNewAdminDisplayName(e.target.value)}
@@ -2077,6 +2111,9 @@ export default function AdminPage() {
                       </label>
                       <input
                         type="password"
+                        id="portal_admin_pwd_input"
+                        name="portal_admin_pwd_input"
+                        autoComplete="new-password"
                         required
                         minLength={6}
                         value={newAdminPassword}
@@ -2089,14 +2126,16 @@ export default function AdminPage() {
                       <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
                         Access Role
                       </label>
-                      <select
+                      <input
+                        type="text"
+                        id="portal_admin_role_input"
+                        name="portal_admin_role_input"
+                        autoComplete="off"
                         value={newAdminRole}
-                        onChange={(e) => setNewAdminRole(e.target.value as any)}
-                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] h-[35px]"
-                      >
-                        <option value="admin">Administrator</option>
-                        <option value="owner">Full Owner</option>
-                      </select>
+                        onChange={(e) => setNewAdminRole(e.target.value)}
+                        placeholder="e.g. Wedding Coordinator, Assistant, Manager"
+                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] placeholder:text-[#ab9776]/70"
+                      />
                     </div>
                   </div>
 
@@ -2104,10 +2143,11 @@ export default function AdminPage() {
                     <button
                       type="submit"
                       disabled={isCreatingAdmin || !newAdminUsername.trim() || !newAdminPassword.trim()}
-                      className="px-4 py-2 text-xs font-serif bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                      className="relative overflow-hidden px-5 py-2.5 text-xs font-serif font-medium bg-gradient-to-r from-[#946f35] via-[#a67e3d] to-[#7f5d2b] hover:from-[#a77e3c] hover:via-[#b88c45] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] rounded-md shadow-sm hover:shadow-lg hover:shadow-[#946f35]/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1.5 group"
                     >
-                      <Plus size={13} />
-                      <span>{isCreatingAdmin ? "Creating..." : "Create Credential"}</span>
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+                      <Plus size={13} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" />
+                      <span className="relative z-10">{isCreatingAdmin ? "Creating..." : "Create Credential"}</span>
                     </button>
                   </div>
                 </form>
@@ -2117,7 +2157,7 @@ export default function AdminPage() {
             <div className="flex justify-end pt-3 border-t border-[#bc965e]/30">
               <button
                 onClick={() => setShowSecurityModal(false)}
-                className="px-5 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7] cursor-pointer"
+                className="px-6 py-2.5 text-xs font-serif font-medium border border-[#bc965e] bg-[#f7eedc] text-[#55313c] rounded-md hover:bg-[#ecd7b0] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
               >
                 Close Security Portal
               </button>

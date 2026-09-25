@@ -4,10 +4,11 @@ export interface AdminUser {
   id: string;
   username: string;
   displayName: string;
-  role: "owner" | "admin";
+  role: string;
   createdAt?: string;
 }
 
+export const PERMANENT_OWNER_USERNAME = "hariharan";
 const SALT = "royal_wedding_salt_";
 const SESSION_KEY = "royal_admin_session_v1";
 
@@ -82,7 +83,7 @@ export async function loginAdmin(
           id: data.id,
           username: data.username,
           displayName: data.display_name || data.username,
-          role: data.role === "owner" ? "owner" : "admin"
+          role: data.role || (data.username === PERMANENT_OWNER_USERNAME ? "owner" : "admin")
         };
         saveAdminSession(user);
         return { success: true, user };
@@ -94,13 +95,13 @@ export async function loginAdmin(
 
   // Built-in owner credentials fallback in case of database offline / initial setup
   if (
-    (cleanUsername === "admin" || cleanUsername === "hariharan") &&
+    cleanUsername === PERMANENT_OWNER_USERNAME &&
     (cleanPassword === "admin123" || cleanPassword === "royal2027")
   ) {
     const user: AdminUser = {
       id: "owner-primary",
-      username: cleanUsername,
-      displayName: cleanUsername === "hariharan" ? "Hariharan (Owner)" : "Studio Owner",
+      username: PERMANENT_OWNER_USERNAME,
+      displayName: "Hariharan (Owner)",
       role: "owner"
     };
     saveAdminSession(user);
@@ -132,7 +133,7 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
       id: d.id,
       username: d.username,
       displayName: d.display_name || d.username,
-      role: d.role === "owner" ? "owner" : "admin",
+      role: d.role || (d.username.toLowerCase() === PERMANENT_OWNER_USERNAME ? "owner" : "Administrator"),
       createdAt: d.created_at
     }));
   } catch (err) {
@@ -146,18 +147,24 @@ export async function createAdminUser(params: {
   username: string;
   displayName: string;
   password: string;
-  role?: "owner" | "admin";
+  role?: string;
 }): Promise<{ success: boolean; error?: string }> {
   const cleanUsername = params.username.trim().toLowerCase();
   const cleanPassword = params.password.trim();
   const cleanDisplayName = params.displayName.trim() || cleanUsername;
-  const role = params.role || "admin";
+  const role = params.role?.trim() || "Administrator";
 
   if (!cleanUsername || cleanUsername.length < 3) {
     return { success: false, error: "Username must be at least 3 characters." };
   }
   if (!cleanPassword || cleanPassword.length < 6) {
     return { success: false, error: "Password must be at least 6 characters." };
+  }
+  if (cleanUsername === PERMANENT_OWNER_USERNAME) {
+    return { success: false, error: "The username 'hariharan' is reserved exclusively for the permanent owner." };
+  }
+  if (/owner/i.test(role)) {
+    return { success: false, error: "The Owner role is reserved exclusively for Hariharan." };
   }
 
   const client = getSupabaseClient();
@@ -234,6 +241,10 @@ export async function updateAdminPassword(
 export async function deleteAdminUser(username: string): Promise<{ success: boolean; error?: string }> {
   const cleanUsername = username.trim().toLowerCase();
   const current = getAdminSession();
+
+  if (cleanUsername === PERMANENT_OWNER_USERNAME) {
+    return { success: false, error: "The permanent owner account (hariharan) cannot be deleted." };
+  }
 
   if (current && current.username.toLowerCase() === cleanUsername) {
     return { success: false, error: "You cannot delete your own currently logged-in account." };
