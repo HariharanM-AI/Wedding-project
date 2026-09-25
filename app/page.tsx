@@ -13,6 +13,16 @@ export default function Home() {
     let active = true;
     async function loadWedding() {
       if (typeof window === "undefined") return;
+
+      // If this deployment is dedicated to Admin (domain has 'admin' or NEXT_PUBLIC_IS_ADMIN=1)
+      if (
+        window.location.hostname.includes("admin") ||
+        process.env.NEXT_PUBLIC_IS_ADMIN === "1"
+      ) {
+        window.location.replace("/admin");
+        return;
+      }
+
       const params = new URLSearchParams(window.location.search);
       const slug = params.get("w") || params.get("wedding") || defaultWeddingData.slug;
       const data = await getWedding(slug);

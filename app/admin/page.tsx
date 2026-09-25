@@ -537,10 +537,11 @@ export default function AdminPage() {
     updateWedding({ events: updated });
   }
 
-  const clientUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/w/${currentWedding.slug}`
-      : `/w/${currentWedding.slug}`;
+  const clientBase =
+    process.env.NEXT_PUBLIC_CLIENT_URL?.trim().replace(/\/+$/, "") ||
+    (typeof window !== "undefined" ? window.location.origin : "");
+
+  const clientUrl = `${clientBase}/w/${currentWedding.slug}`;
 
   return (
     <div className="min-h-screen w-full bg-[#f6ebda] text-[#55313c] font-sans relative overflow-x-hidden selection:bg-[#ab8644] selection:text-[#fff8e9]">
