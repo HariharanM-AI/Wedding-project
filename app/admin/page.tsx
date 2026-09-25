@@ -19,7 +19,12 @@ import {
   Compass,
   Users,
   X,
-  Loader2
+  Loader2,
+  ShieldCheck,
+  LogOut,
+  KeyRound,
+  UserPlus,
+  AlertCircle
 } from "lucide-react";
 import { WeddingData, WeddingEvent, WeddingPhotos } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
@@ -32,6 +37,16 @@ import {
   broadcastWeddingUpdate
 } from "@/lib/wedding-storage";
 import { setAdminBranding } from "@/lib/branding";
+import {
+  getAdminSession,
+  logoutAdmin,
+  listAdminUsers,
+  createAdminUser,
+  updateAdminPassword,
+  deleteAdminUser,
+  AdminUser
+} from "@/lib/admin-auth";
+import { AdminLoginView } from "@/components/admin-login-view";
 
 const MONTHS = [
   "January",
@@ -295,12 +310,42 @@ export default function AdminPage() {
   const [newBride, setNewBride] = useState<string>("");
   const [newGroom, setNewGroom] = useState<string>("");
 
+  // Admin Authentication & Session Security
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [adminSession, setAdminSession] = useState<AdminUser | null>(null);
+
+  // Security & Admin Management Modal
+  const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
+  const [adminUsersList, setAdminUsersList] = useState<AdminUser[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState<boolean>(false);
+  const [securityStatusMsg, setSecurityStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // New admin form state
+  const [newAdminUsername, setNewAdminUsername] = useState("");
+  const [newAdminDisplayName, setNewAdminDisplayName] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState<"admin" | "owner">("admin");
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+
+  // Change password form state
+  const [changePasswordTargetUser, setChangePasswordTargetUser] = useState<string>("");
+  const [newPasswordVal, setNewPasswordVal] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<keyof WeddingPhotos | null>(null);
   const [activeUploadEventId, setActiveUploadEventId] = useState<string | null>(null);
 
-  // Initialize wedding list & check ?edit=slug
+  // Verify authentication & initialize wedding list
   useEffect(() => {
+    const session = getAdminSession();
+    if (session) {
+      setIsAuthenticated(true);
+      setAdminSession(session);
+    } else {
+      setIsAuthenticated(false);
+    }
+
     setAdminBranding();
     refreshWeddingList();
 
@@ -583,6 +628,93 @@ export default function AdminPage() {
     updateWedding({ events: updated });
   }
 
+  async function handleOpenSecurityModal() {
+    setShowSecurityModal(true);
+    setSecurityStatusMsg(null);
+    setIsLoadingAdmins(true);
+    const list = await listAdminUsers();
+    setAdminUsersList(list);
+    setIsLoadingAdmins(false);
+  }
+
+  async function handleCreateNewAdmin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newAdminUsername.trim() || !newAdminPassword.trim()) return;
+    setIsCreatingAdmin(true);
+    setSecurityStatusMsg(null);
+    const res = await createAdminUser({
+      username: newAdminUsername,
+      displayName: newAdminDisplayName,
+      password: newAdminPassword,
+      role: newAdminRole
+    });
+    setIsCreatingAdmin(false);
+    if (res.success) {
+      setSecurityStatusMsg({ type: "success", text: `Administrator "${newAdminUsername}" created successfully.` });
+      setNewAdminUsername("");
+      setNewAdminDisplayName("");
+      setNewAdminPassword("");
+      const updated = await listAdminUsers();
+      setAdminUsersList(updated);
+    } else {
+      setSecurityStatusMsg({ type: "error", text: res.error || "Failed to create administrator." });
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    const targetUser = changePasswordTargetUser || adminSession?.username || "";
+    if (!targetUser || !newPasswordVal.trim()) return;
+    setIsUpdatingPassword(true);
+    setSecurityStatusMsg(null);
+    const res = await updateAdminPassword(targetUser, newPasswordVal);
+    setIsUpdatingPassword(false);
+    if (res.success) {
+      setSecurityStatusMsg({ type: "success", text: `Password for "${targetUser}" updated successfully.` });
+      setNewPasswordVal("");
+      setChangePasswordTargetUser("");
+    } else {
+      setSecurityStatusMsg({ type: "error", text: res.error || "Failed to update password." });
+    }
+  }
+
+  async function handleDeleteAdmin(username: string) {
+    if (username.toLowerCase() === adminSession?.username.toLowerCase()) {
+      setSecurityStatusMsg({ type: "error", text: "You cannot delete your own currently logged-in account." });
+      return;
+    }
+    const res = await deleteAdminUser(username);
+    if (res.success) {
+      setSecurityStatusMsg({ type: "success", text: `Administrator "${username}" removed successfully.` });
+      const updated = await listAdminUsers();
+      setAdminUsersList(updated);
+    } else {
+      setSecurityStatusMsg({ type: "error", text: res.error || "Failed to delete administrator." });
+    }
+  }
+
+  // Authentication gate: show royal loader while checking credentials
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen w-full bg-[#f6ebda] flex flex-col items-center justify-center font-serif text-[#55313c]">
+        <div className="w-8 h-8 rounded-full border-2 border-[#bc965e] border-t-transparent animate-spin mb-3" />
+        <p className="text-xs uppercase tracking-widest text-[#82704f]">Checking Credentials...</p>
+      </div>
+    );
+  }
+
+  // Authentication gate: require credentials to open studio
+  if (!isAuthenticated) {
+    return (
+      <AdminLoginView
+        onLoginSuccess={(user) => {
+          setIsAuthenticated(true);
+          setAdminSession(user);
+        }}
+      />
+    );
+  }
+
   const clientBase =
     process.env.NEXT_PUBLIC_CLIENT_URL?.trim().replace(/\/+$/, "") ||
     (typeof window !== "undefined" ? window.location.origin : "");
@@ -696,6 +828,29 @@ export default function AdminPage() {
               <span>Open Invitation</span>
             </a>
 
+            {/* Admin Security / Credentials */}
+            <button
+              onClick={handleOpenSecurityModal}
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] hover:border-[#946f35] hover:text-[#3d1a24] hover:shadow-md hover:shadow-[#bc965e]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 text-[#55313c] shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              title="Manage administrator logins & passwords"
+            >
+              <ShieldCheck size={13} className="text-[#946f35] group-hover:scale-110 transition-transform duration-200" />
+              <span>Security</span>
+            </button>
+
+            {/* Sign Out */}
+            <button
+              onClick={() => {
+                logoutAdmin();
+                setIsAuthenticated(false);
+              }}
+              className="group h-8 px-2.5 sm:px-3 text-[11.5px] sm:text-xs font-serif font-medium border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-rose-100/70 hover:border-rose-300 hover:text-rose-950 text-rose-800 hover:shadow-md hover:shadow-rose-900/10 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 rounded-md flex items-center gap-1.5 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              title="Lock studio and sign out"
+            >
+              <LogOut size={13} className="group-hover:scale-110 transition-transform duration-200" />
+              <span>Sign Out</span>
+            </button>
+
             {/* Save Changes Button */}
             <SaveButton saveStatus={saveStatus} handleSave={handleSave} />
           </div>
@@ -727,8 +882,25 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Primary Save Changes button pinned in top right */}
-            <div className="shrink-0">
+            {/* Primary Save Changes button pinned in top right + Security & Sign Out */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleOpenSecurityModal}
+                className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-[#f6ebd8] text-[#55313c] flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
+                title="Admin security and credentials"
+              >
+                <ShieldCheck size={14} className="text-[#946f35]" />
+              </button>
+              <button
+                onClick={() => {
+                  logoutAdmin();
+                  setIsAuthenticated(false);
+                }}
+                className="h-8 w-8 rounded-md border border-[#bc965e]/80 bg-[#fffaf0] hover:bg-rose-50 text-rose-800 flex items-center justify-center shadow-xs cursor-pointer active:scale-95 transition-all"
+                title="Sign Out"
+              >
+                <LogOut size={13} />
+              </button>
               <SaveButton saveStatus={saveStatus} handleSave={handleSave} compact={true} />
             </div>
           </div>
@@ -1708,6 +1880,246 @@ export default function AdminPage() {
                 className="px-5 py-2 text-xs font-serif bg-[#946f35] text-[#fff7df] hover:bg-[#765426] disabled:opacity-50 rounded font-medium shadow-xs"
               >
                 Add Celebration
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN SECURITY & CREDENTIAL MANAGEMENT MODAL */}
+      {showSecurityModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#fffdf7] border-2 border-[#bc965e] p-4 sm:p-7 max-w-2xl w-full rounded-xl shadow-2xl space-y-4 animate-scale-up max-h-[90vh] flex flex-col">
+            <div className="border-b border-[#bc965e]/40 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="font-serif text-xl sm:text-2xl text-[#55313c] flex items-center gap-2">
+                  <ShieldCheck size={20} className="text-[#946f35]" />
+                  <span>Admin & Owner Security Portal</span>
+                </h3>
+                <p className="text-xs text-[#82704f] mt-0.5 font-sans">
+                  Manage login credentials, authorized owner accounts, and passwords.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowSecurityModal(false)}
+                className="p-1.5 text-[#82704f] hover:text-[#55313c] rounded hover:bg-[#f5e9cf]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Status notification */}
+            {securityStatusMsg && (
+              <div
+                className={`p-3 rounded-md text-xs font-serif flex items-center gap-2 ${
+                  securityStatusMsg.type === "success"
+                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+                    : "bg-rose-50 text-rose-900 border border-rose-200"
+                }`}
+              >
+                {securityStatusMsg.type === "success" ? <Check size={14} /> : <AlertCircle size={14} />}
+                <span>{securityStatusMsg.text}</span>
+              </div>
+            )}
+
+            <div className="overflow-y-auto space-y-6 flex-1 pr-1">
+              {/* Section 1: Existing Administrators Table */}
+              <div>
+                <h4 className="font-serif text-xs sm:text-sm font-semibold text-[#55313c] uppercase tracking-wider mb-2">
+                  Authorized Administrators & Owners
+                </h4>
+                {isLoadingAdmins ? (
+                  <div className="py-6 flex items-center justify-center gap-2 text-xs font-serif text-[#82704f]">
+                    <Loader2 size={14} className="animate-spin text-[#946f35]" />
+                    <span>Loading administrators...</span>
+                  </div>
+                ) : adminUsersList.length === 0 ? (
+                  <p className="text-xs font-serif text-[#82704f] py-3 italic">No additional administrator accounts registered.</p>
+                ) : (
+                  <div className="divide-y divide-[#bc965e]/30 border border-[#bc965e]/60 rounded-lg overflow-hidden bg-[#fffaf0]">
+                    {adminUsersList.map((adm) => {
+                      const isCurrent = adminSession?.username?.toLowerCase() === adm.username.toLowerCase();
+                      return (
+                        <div key={adm.username} className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-serif text-sm font-semibold text-[#55313c]">{adm.displayName}</span>
+                              <span className="font-mono text-xs text-[#82704f]">(@{adm.username})</span>
+                              <span
+                                className={`text-[10px] font-sans uppercase font-medium px-2 py-0.5 rounded ${
+                                  adm.role === "owner"
+                                    ? "bg-[#946f35] text-[#fff7df]"
+                                    : "bg-[#f5e9cf] text-[#55313c] border border-[#bc965e]/50"
+                                }`}
+                              >
+                                {adm.role}
+                              </span>
+                              {isCurrent && (
+                                <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  Current User
+                                </span>
+                              )}
+                            </div>
+                            {adm.createdAt && (
+                              <p className="text-[11px] text-[#82704f] mt-0.5 font-serif">
+                                Created: {new Date(adm.createdAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setChangePasswordTargetUser(adm.username);
+                                setNewPasswordVal("");
+                              }}
+                              className="px-2.5 py-1 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ead7b7] text-[#55313c] rounded transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <KeyRound size={12} />
+                              <span>Set Password</span>
+                            </button>
+                            {!isCurrent && (
+                              <button
+                                onClick={() => handleDeleteAdmin(adm.username)}
+                                className="p-1 text-xs text-rose-800 hover:text-rose-950 border border-rose-300 hover:bg-rose-100/60 rounded transition-all cursor-pointer"
+                                title="Delete administrator"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Update Password Form */}
+              {changePasswordTargetUser && (
+                <div className="p-4 bg-[#fbf5e7] border border-[#bc965e] rounded-lg space-y-3 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
+                      <KeyRound size={13} className="text-[#946f35]" />
+                      <span>Update Password for @{changePasswordTargetUser}</span>
+                    </h5>
+                    <button
+                      onClick={() => setChangePasswordTargetUser("")}
+                      className="text-xs text-[#82704f] hover:text-[#55313c] underline"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <form onSubmit={handleChangePassword} className="flex flex-col sm:flex-row gap-2.5">
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={newPasswordVal}
+                      onChange={(e) => setNewPasswordVal(e.target.value)}
+                      placeholder="Enter new password (min. 6 characters)"
+                      className="flex-1 bg-[#fffaf0] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isUpdatingPassword || !newPasswordVal.trim()}
+                      className="px-4 py-2 text-xs font-serif bg-[#946f35] hover:bg-[#7d5c2a] text-[#fff7df] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      {isUpdatingPassword ? "Saving..." : "Save Password"}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Section 3: Add New Administrator Form */}
+              <div className="p-4 bg-[#fffaf0] border border-[#bc965e]/70 rounded-lg space-y-3">
+                <h4 className="font-serif text-xs font-semibold text-[#55313c] uppercase tracking-wider flex items-center gap-1.5">
+                  <UserPlus size={14} className="text-[#946f35]" />
+                  <span>Create New Administrator Credential</span>
+                </h4>
+                <p className="text-[11px] text-[#82704f] font-serif">
+                  Only existing authorized owners can generate new credentials. Users cannot self-register from the login page.
+                </p>
+                <form onSubmit={handleCreateNewAdmin} className="space-y-3 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                        Username (Login ID)
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newAdminUsername}
+                        onChange={(e) => setNewAdminUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                        placeholder="e.g. planner_sarah"
+                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                        Full Display Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newAdminDisplayName}
+                        onChange={(e) => setNewAdminDisplayName(e.target.value)}
+                        placeholder="e.g. Sarah Jenkins"
+                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                        Initial Password
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={newAdminPassword}
+                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                        placeholder="Minimum 6 characters"
+                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-serif uppercase tracking-wider text-[#82704f] mb-1 font-medium">
+                        Access Role
+                      </label>
+                      <select
+                        value={newAdminRole}
+                        onChange={(e) => setNewAdminRole(e.target.value as any)}
+                        className="w-full bg-[#fffdf7] border border-[#bc965e] px-3 py-2 text-xs text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35] h-[35px]"
+                      >
+                        <option value="admin">Administrator</option>
+                        <option value="owner">Full Owner</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="submit"
+                      disabled={isCreatingAdmin || !newAdminUsername.trim() || !newAdminPassword.trim()}
+                      className="px-4 py-2 text-xs font-serif bg-gradient-to-r from-[#946f35] to-[#7f5d2b] hover:from-[#a77e3c] hover:to-[#8f6931] text-[#fff8e7] border border-[#6b4e23] rounded font-medium shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Plus size={13} />
+                      <span>{isCreatingAdmin ? "Creating..." : "Create Credential"}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-[#bc965e]/30">
+              <button
+                onClick={() => setShowSecurityModal(false)}
+                className="px-5 py-2 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] text-[#55313c] rounded hover:bg-[#ead7b7] cursor-pointer"
+              >
+                Close Security Portal
               </button>
             </div>
           </div>
