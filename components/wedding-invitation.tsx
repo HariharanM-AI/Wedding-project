@@ -209,9 +209,25 @@ const FilmScenes = memo(function FilmScenes({
                   <p className="event-short">
                     {event.shortCopy || event.copy || (i === 0 ? "Henna, laughter and all the little joys before forever." : "A night of music, a little magic, and a whole lot of love.")}
                   </p>
-                  <button className="gold-button" onClick={() => onDetails(i)}>
-                    The details <ArrowUpRight size={15} />
-                  </button>
+                  <div className="event-actions">
+                    <button className="gold-button" onClick={() => onDetails(i)}>
+                      The details <ArrowUpRight size={15} />
+                    </button>
+                    <a
+                      className="gold-button location-button"
+                      href={
+                        event.locationUrl ||
+                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          `${event.venue || data.venueName || ""} ${data.city || ""}`.trim()
+                        )}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Location <MapPin size={15} />
+                    </a>
+                  </div>
                 </div>
               </article>
             ))}
@@ -800,9 +816,24 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
               <p>
                 {data.venueName} · {data.city}
               </p>
-              <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                Save the celebrations <CalendarDays size={16} />
-              </a>
+              <div className="dialog-actions">
+                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+                  Save the celebrations <CalendarDays size={16} />
+                </a>
+                <a
+                  className="gold-button location-button"
+                  href={
+                    data.venueLocationUrl ||
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${data.venueName} ${data.city}`.trim()
+                    )}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Location <MapPin size={16} />
+                </a>
+              </div>
             </>
           ) : currentEvent ? (
             <>
@@ -817,9 +848,24 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
                 {currentEvent.time}
               </p>
               <p>{currentEvent.venue}</p>
-              <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                Save the celebrations <CalendarDays size={16} />
-              </a>
+              <div className="dialog-actions">
+                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+                  Save the celebrations <CalendarDays size={16} />
+                </a>
+                <a
+                  className="gold-button location-button"
+                  href={
+                    currentEvent.locationUrl ||
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${currentEvent.venue} ${data.city || ""}`.trim()
+                    )}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Location <MapPin size={16} />
+                </a>
+              </div>
             </>
           ) : null}
         </DialogContent>

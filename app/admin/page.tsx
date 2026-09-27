@@ -403,12 +403,14 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
   const monogram = (w.monogram || "").toUpperCase();
   const finalSubtext = w.finalSubtext || (w.brideName && w.groomName ? `Wedding of ${w.brideName} & ${w.groomName}` : "");
   const muhurthamDetails = w.muhurthamDetails || defaultWeddingData.muhurthamDetails || "";
+  const venueLocationUrl = w.venueLocationUrl || "";
   return {
     ...w,
     monogram,
     finalSubtext,
     muhurthamDetails,
     weddingDate,
+    venueLocationUrl,
     events: cleanEvents
   };
 }
@@ -663,6 +665,7 @@ export default function AdminPage() {
       locationLine: "",
       city: "",
       venueName: "",
+      venueLocationUrl: "",
       muhurthamTime: "",
       events: [
         {
@@ -671,6 +674,7 @@ export default function AdminPage() {
           date: "",
           time: "",
           venue: "",
+          locationUrl: "",
           copy: defaultWeddingData.events[0]?.copy || "An afternoon of henna, familiar songs, and the people we call home. Come dressed in colour and stay for the laughter.",
           shortTagline: defaultWeddingData.events[0]?.shortTagline || "A LITTLE COLOUR. A LOT OF JOY.",
           shortCopy: defaultWeddingData.events[0]?.shortCopy || "Henna, laughter and all the little joys before forever.",
@@ -682,6 +686,7 @@ export default function AdminPage() {
           date: "",
           time: "",
           venue: "",
+          locationUrl: "",
           copy: defaultWeddingData.events[1]?.copy || "An evening of music, dancing, and two families becoming one. Bring a favourite song and your happiest dancing shoes.",
           shortTagline: defaultWeddingData.events[1]?.shortTagline || "OUR FAMILIES. OUR FAVOURITE SONGS.",
           shortCopy: defaultWeddingData.events[1]?.shortCopy || "A night of music, a little magic, and a whole lot of love.",
@@ -789,6 +794,7 @@ export default function AdminPage() {
       date: "",
       time: "",
       venue: "",
+      locationUrl: "",
       copy: "",
       shortTagline: "",
       shortCopy: "",
@@ -1452,6 +1458,22 @@ export default function AdminPage() {
 
                 <div className="pt-4 border-t border-[#bc965e]/30">
                   <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
+                    Google Maps Location Link (Primary Ceremony Venue)
+                  </label>
+                  <input
+                    type="url"
+                    value={currentWedding.venueLocationUrl || ""}
+                    onChange={(e) => updateWedding({ venueLocationUrl: e.target.value })}
+                    placeholder="e.g. https://maps.app.goo.gl/... or https://www.google.com/maps/..."
+                    className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                  />
+                  <p className="text-xs text-[#82704f] mt-1 font-serif italic">
+                    Paste a direct Google Maps share link to guide guests straight to your primary ceremony.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[#bc965e]/30">
+                  <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
                     Location Stamp Banner 
                   </label>
                   <input
@@ -1571,6 +1593,22 @@ export default function AdminPage() {
                             onChange={(e) => handleUpdateEvent(idx, "shortTagline", e.target.value)}
                             className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
+                        </div>
+
+                        <div className="md:col-span-3">
+                          <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] mb-1.5 font-medium">
+                            Google Maps Location Link
+                          </label>
+                          <input
+                            type="url"
+                            value={evt.locationUrl || ""}
+                            onChange={(e) => handleUpdateEvent(idx, "locationUrl", e.target.value)}
+                            placeholder="e.g. https://maps.app.goo.gl/... or https://www.google.com/maps/..."
+                            className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                          />
+                          <p className="text-xs text-[#82704f] mt-1 font-serif italic">
+                            Guests can tap the Location button on this celebration card to open Google Maps directly.
+                          </p>
                         </div>
 
                         <div className="md:col-span-3">

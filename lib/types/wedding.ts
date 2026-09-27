@@ -8,6 +8,7 @@ export interface WeddingEvent {
   shortTagline?: string;
   shortCopy?: string;
   image?: string;
+  locationUrl?: string; // Google Maps link for this specific celebration
 }
 
 export interface WeddingPhotos {
@@ -38,6 +39,7 @@ export interface WeddingData {
   locationLine: string; // e.g. "20 FEBRUARY 2027 · THANJAVUR"
   city: string; // e.g. "Thanjavur, Tamil Nadu"
   venueName: string; // e.g. "The Heritage Courtyard"
+  venueLocationUrl?: string; // Google Maps link for primary venue
   muhurthamTime: string; // e.g. "Muhurtham · 9:15 am – 11:30 am"
   muhurthamDetails?: string; // Story & details displayed in guest pop-up for the wedding ceremony
   events: WeddingEvent[];
