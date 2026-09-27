@@ -262,6 +262,17 @@
 
 .event-actions .gold-button {
   margin-top: 0 !important;
+  box-sizing: border-box !important;
+  height: 39px !important;
+  min-height: 39px !important;
+  max-height: 39px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: 1px solid transparent;
 }
 
 .dialog-actions {
@@ -274,6 +285,17 @@
 
 .dialog-actions .gold-button {
   margin-top: 0 !important;
+  box-sizing: border-box !important;
+  height: 39px !important;
+  min-height: 39px !important;
+  max-height: 39px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: 1px solid transparent;
 }
 
 /* Location Button Styling */
@@ -301,8 +323,13 @@
   }
   .event-actions .gold-button {
     font-size: 11px !important;
+    height: 31px !important;
     min-height: 31px !important;
-    padding: 7px 12px !important;
+    max-height: 31px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     gap: 6px !important;
   }
   .dialog-actions {
@@ -314,8 +341,14 @@
   .dialog-actions .gold-button {
     width: 100% !important;
     font-size: 12px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     justify-content: center;
-    padding: 9px 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 }
 
@@ -325,8 +358,14 @@
     gap: 8px;
   }
   .event-actions .gold-button {
-    padding: 7px 13px !important;
+    height: 31px !important;
     min-height: 31px !important;
+    max-height: 31px !important;
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 }
+
 
