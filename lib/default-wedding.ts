@@ -12,9 +12,9 @@ export const defaultWeddingData: WeddingData = {
       "image": "/images/couple.webp",
       "title": "Mehandhi Afternoon",
       "venue": "The Garden Courtyard · Mysore",
-      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Garden+Courtyard+Mysore",
       "shortCopy": "Henna, laughter and all the little joys before forever.",
-      "shortTagline": "A LITTLE COLOUR. A LOT OF JOY."
+      "shortTagline": "A LITTLE COLOUR. A LOT OF JOY.",
+      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Garden+Courtyard+Mysore"
     },
     {
       "id": "event-2",
@@ -24,9 +24,9 @@ export const defaultWeddingData: WeddingData = {
       "image": "/images/hands.webp",
       "title": "Sangeet evening",
       "venue": "The Celebration Hall · Mysore",
-      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Celebration+Hall+Mysore",
       "shortCopy": "A night of music, a little magic, and a whole lot of love.",
-      "shortTagline": "OUR FAMILIES. OUR FAVOURITE SONGS."
+      "shortTagline": "OUR FAMILIES. OUR FAVOURITE SONGS.",
+      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Celebration+Hall+Mysore"
     },
     {
       "id": "event-1790293561322",
@@ -36,9 +36,9 @@ export const defaultWeddingData: WeddingData = {
       "image": "/images/reception.png",
       "title": "Reception Night",
       "venue": "The Celebration Hall · Mysore",
-      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Celebration+Hall+Mysore",
       "shortCopy": "",
-      "shortTagline": "A CELEBRATION OF LOVE & TOGETHERNESS"
+      "shortTagline": "A CELEBRATION OF LOVE & TOGETHERNESS",
+      "locationUrl": "https://www.google.com/maps/search/?api=1&query=The+Celebration+Hall+Mysore"
     },
     {
       "id": "event-1790293571261",
@@ -48,9 +48,9 @@ export const defaultWeddingData: WeddingData = {
       "image": "/images/gettogether.png",
       "title": "Get Together",
       "venue": "Kingdom Party Hall · Mysore",
-      "locationUrl": "https://www.google.com/maps/search/?api=1&query=Kingdom+Party+Hall+Mysore",
       "shortCopy": "",
-      "shortTagline": "AN EVENING OF JOY, LAUGHTER & MEMORIES"
+      "shortTagline": "AN EVENING OF JOY, LAUGHTER & MEMORIES",
+      "locationUrl": "https://www.google.com/maps/search/?api=1&query=Kingdom+Party+Hall+Mysore"
     },
     {
       "id": "event-1790295839972",
@@ -60,9 +60,9 @@ export const defaultWeddingData: WeddingData = {
       "image": "/images/couple.webp",
       "title": "DJ Party",
       "venue": "Kingdom Party Hall · Mysore",
-      "locationUrl": "https://www.google.com/maps/search/?api=1&query=Kingdom+Party+Hall+Mysore",
       "shortCopy": "",
-      "shortTagline": "A NIGHT OF JOY, LAUGHTER & MEMORIES"
+      "shortTagline": "A NIGHT OF JOY, LAUGHTER & MEMORIES",
+      "locationUrl": "https://www.google.com/maps/search/?api=1&query=Kingdom+Party+Hall+Mysore"
     }
   ],
   "photos": {
@@ -80,7 +80,6 @@ export const defaultWeddingData: WeddingData = {
   "groomName": "Hariharan M",
   "updatedAt": "2026-09-25T00:27:02.669Z",
   "venueName": "The Heritage Courtyard",
-  "venueLocationUrl": "https://www.google.com/maps/search/?api=1&query=The+Heritage+Courtyard+Mysore",
   "storyIntro": "Different paths, the same kind of forever.",
   "subheading": "ARE GETTING MARRIED",
   "displayDate": "16 November 2031",

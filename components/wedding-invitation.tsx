@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { ArrowDown, CalendarDays, ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowDown, CalendarDays, ArrowUpRight, MapPin, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Celebration, stageState, SCENE_EVENT, SHOWER_EVENT, BLESSED_EVENT } from "@/app/celebration";
 import { WeddingData } from "@/lib/types/wedding";
@@ -60,7 +60,7 @@ function BlessingControls({ bride, groom }: { bride: string; groom: string }) {
     <div className="blessing-controls" data-layer="blessing-controls">
       <span className="eyebrow">{bride.toUpperCase()} & {groom.toUpperCase()}</span>
       <button className="gold-button akshantalu-button" onClick={() => dispatchEvent(new Event(SHOWER_EVENT))}>
-        Bless The Couple <span aria-hidden="true">✦</span>
+        Bless The Couple <Sparkles size={14} />
       </button>
       <p className="tap-hint">
         Tap anywhere to bless the couple
@@ -216,10 +216,11 @@ const FilmScenes = memo(function FilmScenes({
                     <a
                       className="gold-button location-button"
                       href={
-                        event.locationUrl ||
-                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          `${event.venue || data.venueName || ""} ${data.city || ""}`.trim()
-                        )}`
+                        event.locationUrl?.trim()
+                          ? event.locationUrl.trim()
+                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${event.venue || data.venueName || ""} ${data.city || ""}`.trim()
+                            )}`
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -817,21 +818,18 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
                 {data.venueName} · {data.city}
               </p>
               <div className="dialog-actions">
-                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                  Save the celebrations <CalendarDays size={16} />
-                </a>
                 <a
                   className="gold-button location-button"
-                  href={
-                    data.venueLocationUrl ||
-                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${data.venueName} ${data.city}`.trim()
-                    )}`
-                  }
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${data.venueName || ""} ${data.city || ""}`.trim()
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  View Location <MapPin size={16} />
+                  View Location <MapPin size={15} />
+                </a>
+                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+                  Save the celebrations <CalendarDays size={16} />
                 </a>
               </div>
             </>
@@ -849,21 +847,22 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
               </p>
               <p>{currentEvent.venue}</p>
               <div className="dialog-actions">
-                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                  Save the celebrations <CalendarDays size={16} />
-                </a>
                 <a
                   className="gold-button location-button"
                   href={
-                    currentEvent.locationUrl ||
-                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${currentEvent.venue} ${data.city || ""}`.trim()
-                    )}`
+                    currentEvent.locationUrl?.trim()
+                      ? currentEvent.locationUrl.trim()
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          `${currentEvent.venue || data.venueName || ""} ${data.city || ""}`.trim()
+                        )}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  View Location <MapPin size={16} />
+                  View Location <MapPin size={15} />
+                </a>
+                <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
+                  Save the celebrations <CalendarDays size={16} />
                 </a>
               </div>
             </>
