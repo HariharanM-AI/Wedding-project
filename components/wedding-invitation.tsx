@@ -829,7 +829,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
                   View Location <MapPin size={15} />
                 </a>
                 <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                  Save the celebrations <CalendarDays size={16} />
+                  Save the celebrations <CalendarDays size={15} />
                 </a>
               </div>
             </>
@@ -862,7 +862,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
                   View Location <MapPin size={15} />
                 </a>
                 <a className="gold-button wine-button" href="/ananya-karthik-wedding.ics" download>
-                  Save the celebrations <CalendarDays size={16} />
+                  Save the celebrations <CalendarDays size={15} />
                 </a>
               </div>
             </>

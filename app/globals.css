@@ -295,7 +295,15 @@
   line-height: 1 !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
-  border: 1px solid transparent;
+  border: 1px solid #bc965e !important;
+  box-shadow: 0 4px 14px rgba(85, 49, 60, 0.22);
+  gap: 8px !important;
+}
+
+.dialog-actions .wine-button:hover {
+  border-color: #d9a43a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(85, 49, 60, 0.32);
 }
 
 /* Location Button Styling */
