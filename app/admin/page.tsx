@@ -1470,9 +1470,6 @@ export default function AdminPage() {
                     placeholder="e.g. https://maps.app.goo.gl/... or paste Google Maps URL"
                     className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                   />
-                  <p className="text-[11px] text-[#82704f] mt-1 font-sans">
-                    Paste the direct Google Maps link for the primary wedding ceremony. If left blank, it automatically searches for the venue and city.
-                  </p>
                 </div>
 
                 <div className="pt-4 border-t border-[#bc965e]/30">
@@ -1609,9 +1606,6 @@ export default function AdminPage() {
                             placeholder="e.g. https://maps.app.goo.gl/... or paste Google Maps URL"
                             className="w-full bg-[#fffaf0] border border-[#bc965e] px-4 py-2.5 text-sm text-[#55313c] rounded h-[42px] focus:outline-none focus:ring-1 focus:ring-[#946f35]"
                           />
-                          <p className="text-[11px] text-[#82704f] mt-1 font-sans">
-                            Paste the Google Maps share link. Guests can click the Location button on this celebration to open turn-by-turn directions in Google Maps.
-                          </p>
                         </div>
 
                         <div className="md:col-span-3">
