@@ -47,5 +47,7 @@ export interface WeddingData {
   storyIntro: string; // e.g. "Different paths, the same kind of forever."
   finalHeading: string; // e.g. "Our forever begins with you."
   finalSubtext?: string;
+  audioUrl?: string; // Custom background wedding music URL
+  enableIntroAnimation?: boolean; // Toggle for luxury envelope opening intro
   updatedAt?: string;
 }

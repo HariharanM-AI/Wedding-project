@@ -26,7 +26,13 @@ import {
   KeyRound,
   UserPlus,
   AlertCircle,
-  ChevronDown
+  ChevronDown,
+  Music,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  RotateCcw
 } from "lucide-react";
 import { WeddingData, WeddingEvent, WeddingPhotos } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
@@ -36,6 +42,7 @@ import {
   saveWedding,
   deleteWedding,
   uploadWeddingPhoto,
+  uploadWeddingAudio,
   broadcastWeddingUpdate
 } from "@/lib/wedding-storage";
 import { setAdminBranding } from "@/lib/branding";
@@ -407,6 +414,8 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
   const finalSubtext = w.finalSubtext || (w.brideName && w.groomName ? `Wedding of ${w.brideName} & ${w.groomName}` : "");
   const muhurthamDetails = w.muhurthamDetails || defaultWeddingData.muhurthamDetails || "";
   const venueLocationUrl = w.venueLocationUrl || "";
+  const audioUrl = w.audioUrl !== undefined ? w.audioUrl : (defaultWeddingData.audioUrl || "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4");
+  const enableIntroAnimation = w.enableIntroAnimation !== undefined ? w.enableIntroAnimation : true;
   return {
     ...w,
     monogram,
@@ -414,6 +423,8 @@ function sanitizeWeddingData(w: WeddingData): WeddingData {
     muhurthamDetails,
     weddingDate,
     venueLocationUrl,
+    audioUrl,
+    enableIntroAnimation,
     events: cleanEvents
   };
 }
@@ -439,7 +450,7 @@ export default function AdminPage() {
     }
     return sanitizeWeddingData(defaultWeddingData);
   });
-  const [activeTab, setActiveTab] = useState<"couple" | "venue" | "events" | "photos">("couple");
+  const [activeTab, setActiveTab] = useState<"couple" | "venue" | "events" | "photos" | "music">("couple");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
@@ -494,6 +505,26 @@ export default function AdminPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<keyof WeddingPhotos | null>(null);
   const [activeUploadEventId, setActiveUploadEventId] = useState<string | null>(null);
+
+  // Audio & Intro state
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const adminAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [isUploadingAudio, setIsUploadingAudio] = useState<boolean>(false);
+  const [isAdminAudioPlaying, setIsAdminAudioPlaying] = useState<boolean>(false);
+  const [audioDuration, setAudioDuration] = useState<number>(0);
+  const [audioCurrentTime, setAudioCurrentTime] = useState<number>(0);
+  const [audioUploadSuccess, setAudioUploadSuccess] = useState<string | null>(null);
+  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+
+  // Auto-dismiss audio success notification after 4 seconds
+  useEffect(() => {
+    if (audioUploadSuccess) {
+      const timer = setTimeout(() => {
+        setAudioUploadSuccess(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [audioUploadSuccess]);
 
   // Verify authentication & initialize wedding list
   useEffect(() => {
@@ -779,6 +810,57 @@ export default function AdminPage() {
         setUploadingSlot(null);
         setActiveUploadEventId(null);
       }
+    }
+  }
+
+  async function handleAudioFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAudio(true);
+    setAudioUploadSuccess(null);
+    setAudioUploadError(null);
+
+    try {
+      const url = await uploadWeddingAudio(file, currentWedding.slug);
+      const updated = { ...currentWedding, audioUrl: url };
+      updateWedding({ audioUrl: url });
+      await saveWedding(updated);
+      setAudioUploadSuccess(`Audio soundtrack "${file.name}" uploaded and saved successfully.`);
+      if (adminAudioRef.current) {
+        adminAudioRef.current.load();
+      }
+    } catch (err) {
+      setAudioUploadError("Audio upload failed: " + err);
+    } finally {
+      setIsUploadingAudio(false);
+      if (audioInputRef.current) {
+        audioInputRef.current.value = "";
+      }
+    }
+  }
+
+  function handleResetDefaultAudio() {
+    const defaultUrl = defaultWeddingData.audioUrl || "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4";
+    const updated = { ...currentWedding, audioUrl: defaultUrl };
+    updateWedding({ audioUrl: defaultUrl });
+    saveWedding(updated);
+    setAudioUploadSuccess("Soundtrack reset to default royal melody.");
+    if (adminAudioRef.current) {
+      adminAudioRef.current.load();
+    }
+  }
+
+  function toggleAdminAudio() {
+    if (!adminAudioRef.current) return;
+    if (adminAudioRef.current.paused) {
+      adminAudioRef.current
+        .play()
+        .then(() => setIsAdminAudioPlaying(true))
+        .catch(() => {});
+    } else {
+      adminAudioRef.current.pause();
+      setIsAdminAudioPlaying(false);
     }
   }
 
@@ -1186,13 +1268,14 @@ export default function AdminPage() {
       {/* FULL-WIDTH RESPONSIVE STUDIO BODY (Edge-to-edge, smoothly filling the screen) */}
       <main className="relative z-10 w-full px-3 sm:px-8 lg:px-12 py-3.5 sm:py-6">
         <div className="w-full flex flex-col gap-4 sm:gap-6">
-          {/* TABS SELECTOR - Fully Responsive, Equally Fills Entire Space Up to the End */}
-          <div className="w-full grid grid-cols-2 sm:grid-cols-4 border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-1.5 sm:p-2 gap-1.5 sm:gap-2 shadow-sm">
+          {/* TABS SELECTOR - Fully Responsive 5-Tab Grid with Music & Intro */}
+          <div className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border border-[#bc965e]/70 bg-[#fffcf4]/90 backdrop-blur-md rounded-xl p-1.5 sm:p-2 gap-1.5 sm:gap-2 shadow-sm">
             {[
               { id: "couple", label: "Couple & Story", shortLabel: "Couple", icon: Heart },
               { id: "venue", label: "Muhurtham & Venue", shortLabel: "Muhurtham", icon: MapPin },
               { id: "events", label: "Celebrations & Events", shortLabel: "Events", icon: Calendar },
-              { id: "photos", label: "Photos & Media", shortLabel: "Photos", icon: ImageIcon }
+              { id: "photos", label: "Photos & Media", shortLabel: "Photos", icon: ImageIcon },
+              { id: "music", label: "Music & Intro", shortLabel: "Music & Intro", icon: Music }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1802,6 +1885,289 @@ export default function AdminPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TAB 5: MUSIC & INTRO */}
+            {activeTab === "music" && (
+              <div className="space-y-8 animate-fade-in">
+                <div className="border-b border-[#bc965e]/30 pb-4 flex items-center justify-between">
+                  <div>
+                    <h2 className="font-serif text-2xl sm:text-3xl text-[#55313c]">Music & Royal Intro Animation</h2>
+                    <p className="text-xs sm:text-sm text-[#82704f] mt-1 font-sans">
+                      Manage the luxury wax-seal envelope opening animation and upload client-specific background music for this invitation.
+                    </p>
+                  </div>
+                  <Music size={26} className="text-[#946f35]/40 hidden sm:block" />
+                </div>
+
+                {/* Status Notifications for Audio */}
+                {audioUploadSuccess && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-lg text-xs font-serif text-emerald-800 flex items-center gap-2">
+                    <Check size={14} className="text-emerald-700 shrink-0" />
+                    <span>{audioUploadSuccess}</span>
+                  </div>
+                )}
+                {audioUploadError && (
+                  <div className="p-3 bg-rose-50 border border-rose-300 rounded-lg text-xs font-serif text-rose-800 flex items-center gap-2">
+                    <AlertCircle size={14} className="text-rose-700 shrink-0" />
+                    <span>{audioUploadError}</span>
+                  </div>
+                )}
+
+                {/* Hidden Audio file input */}
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.mp4"
+                  onChange={handleAudioFileChange}
+                  className="hidden"
+                />
+
+                {/* Hidden Audio playback element for Admin preview */}
+                <audio
+                  ref={adminAudioRef}
+                  src={currentWedding.audioUrl || defaultWeddingData.audioUrl || "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4"}
+                  onPlay={() => setIsAdminAudioPlaying(true)}
+                  onPause={() => setIsAdminAudioPlaying(false)}
+                  onTimeUpdate={() => {
+                    if (adminAudioRef.current) {
+                      setAudioCurrentTime(adminAudioRef.current.currentTime);
+                      setAudioDuration(adminAudioRef.current.duration || 0);
+                    }
+                  }}
+                  onLoadedMetadata={() => {
+                    if (adminAudioRef.current) {
+                      setAudioDuration(adminAudioRef.current.duration || 0);
+                    }
+                  }}
+                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* SECTION 1: ROYAL INTRO ENVELOPE ANIMATION */}
+                  <div className="bg-[#fffcf4] border border-[#bc965e]/60 rounded-xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between pb-3 border-b border-[#bc965e]/30 mb-4">
+                        <div>
+                          <h3 className="font-serif text-lg font-semibold text-[#55313c]">
+                            Royal Envelope Opening Ceremony
+                          </h3>
+                          <p className="text-[11px] text-[#82704f] font-sans mt-0.5">
+                            Interactive wax-seal intro with 60FPS gold illumination
+                          </p>
+                        </div>
+                        <Sparkles size={20} className="text-[#946f35]" />
+                      </div>
+
+                      {/* Enable/Disable Toggle */}
+                      <div className="flex items-center justify-between p-3.5 bg-[#fbf5e7] border border-[#bc965e]/50 rounded-lg mb-5">
+                        <div>
+                          <span className="font-serif text-sm font-semibold text-[#55313c] block">
+                            Enable Intro Animation
+                          </span>
+                          <span className="text-[11px] text-[#82704f] font-sans block mt-0.5">
+                            Presents guests with the wax-seal envelope ceremony on initial visit
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextVal = currentWedding.enableIntroAnimation === false;
+                            updateWedding({ enableIntroAnimation: nextVal });
+                          }}
+                          className={`relative inline-flex h-6 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            currentWedding.enableIntroAnimation !== false ? "bg-[#55313c]" : "bg-[#d9c7a1]"
+                          }`}
+                          role="switch"
+                          aria-checked={currentWedding.enableIntroAnimation !== false}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[#fffaf0] shadow-md ring-0 transition duration-200 ease-in-out ${
+                              currentWedding.enableIntroAnimation !== false ? "translate-x-6 bg-[#dfbe7d]" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Visual Preview Card */}
+                      <div className="relative rounded-lg overflow-hidden border border-[#bc965e]/70 aspect-[16/10] bg-[#1a0e0a] group">
+                        <img
+                          src="/Intro/Invi intro.png"
+                          alt="Intro Envelope Preview"
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-4">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="w-2 h-2 rounded-full bg-[#dfbe7d] animate-pulse" />
+                            <span className="font-serif text-[11px] text-[#dfbe7d] tracking-widest uppercase font-semibold">
+                              Cinematic 60FPS Sequence
+                            </span>
+                          </div>
+                          <p className="font-serif text-xs text-[#fff7df] leading-snug">
+                            Tap to Open wax seal &bull; Golden leaf relief light trail &bull; Radiance burst into the wedding invitation
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-[#bc965e]/30 flex items-center justify-between">
+                      <span className="text-[11.5px] text-[#82704f] font-serif">
+                        Status:{" "}
+                        <strong className="text-[#55313c]">
+                          {currentWedding.enableIntroAnimation !== false ? "Active on Invitation" : "Disabled"}
+                        </strong>
+                      </span>
+                      <a
+                        href={clientUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-serif font-medium px-3.5 py-1.5 rounded-md border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] hover:border-[#946f35] text-[#55313c] transition-all cursor-pointer"
+                      >
+                        <ExternalLink size={12} />
+                        <span>Experience Intro</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: CUSTOM AUDIO SOUNDTRACK */}
+                  <div className="bg-[#fffcf4] border border-[#bc965e]/60 rounded-xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between pb-3 border-b border-[#bc965e]/30 mb-4">
+                        <div>
+                          <h3 className="font-serif text-lg font-semibold text-[#55313c]">
+                            Custom Wedding Soundtrack
+                          </h3>
+                          <p className="text-[11px] text-[#82704f] font-sans mt-0.5">
+                            Audio plays automatically upon guest tap on the envelope wax seal
+                          </p>
+                        </div>
+                        <Volume2 size={20} className="text-[#946f35]" />
+                      </div>
+
+                      {/* Interactive Audio Player Preview Card */}
+                      <div className="p-4 bg-[#fbf5e7] border border-[#bc965e]/60 rounded-lg mb-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={toggleAdminAudio}
+                              className="w-10 h-10 rounded-full bg-[#55313c] text-[#fff7df] flex items-center justify-center hover:bg-[#724350] transition-colors shadow-sm cursor-pointer"
+                              title={isAdminAudioPlaying ? "Pause preview" : "Play preview"}
+                            >
+                              {isAdminAudioPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
+                            </button>
+                            <div>
+                              <div className="font-serif text-xs font-semibold text-[#55313c]">
+                                {currentWedding.audioUrl && !currentWedding.audioUrl.includes("WhatsApp Video")
+                                  ? "Custom Client Soundtrack"
+                                  : "Royal Classical Wedding Soundtrack"}
+                              </div>
+                              <div className="text-[10px] text-[#82704f] font-mono mt-0.5">
+                                {Math.floor(audioCurrentTime / 60)}:
+                                {String(Math.floor(audioCurrentTime % 60)).padStart(2, "0")} /{" "}
+                                {Math.floor(audioDuration / 60)}:
+                                {String(Math.floor(audioDuration % 60)).padStart(2, "0")}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Sound wave bars */}
+                          <div className="flex items-end gap-[3px] h-4">
+                            <span
+                              className={`w-[2px] bg-[#946f35] rounded-full transition-all duration-200 ${
+                                isAdminAudioPlaying ? "h-4 animate-pulse" : "h-1"
+                              }`}
+                            />
+                            <span
+                              className={`w-[2px] bg-[#bc965e] rounded-full transition-all duration-200 ${
+                                isAdminAudioPlaying ? "h-2.5 animate-bounce" : "h-1"
+                              }`}
+                            />
+                            <span
+                              className={`w-[2px] bg-[#946f35] rounded-full transition-all duration-200 ${
+                                isAdminAudioPlaying ? "h-3.5 animate-pulse" : "h-1"
+                              }`}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Scrub Bar */}
+                        <div className="w-full bg-[#e8ce99]/50 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#946f35] h-full transition-all duration-150"
+                            style={{
+                              width: `${audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* File Upload Option */}
+                      <div className="space-y-3 mb-4">
+                        <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] font-medium">
+                          Upload Audio File (.mp3, .wav, .m4a, .aac)
+                        </label>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (audioInputRef.current) {
+                                audioInputRef.current.value = "";
+                                audioInputRef.current.click();
+                              }
+                            }}
+                            disabled={isUploadingAudio}
+                            className="group h-9 px-4 text-xs font-serif border border-[#bc965e] bg-[#f5e9cf] hover:bg-[#ebdaba] hover:border-[#946f35] hover:shadow-xs rounded-md flex items-center gap-2 text-[#55313c] transition-all cursor-pointer disabled:opacity-60"
+                          >
+                            {isUploadingAudio ? (
+                              <Loader2 size={13} className="animate-spin text-[#946f35]" />
+                            ) : (
+                              <Upload size={13} className="group-hover:scale-115 transition-transform duration-200 text-[#946f35]" />
+                            )}
+                            <span className="font-medium">
+                              {isUploadingAudio ? "Uploading Audio..." : "Select Audio File"}
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleResetDefaultAudio}
+                            className="h-9 px-3 text-xs font-serif text-[#82704f] hover:text-[#55313c] underline flex items-center gap-1 cursor-pointer"
+                            title="Reset to default royal soundtrack"
+                          >
+                            <RotateCcw size={12} />
+                            <span>Reset Default</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Direct Audio URL input */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-serif uppercase tracking-wider text-[#82704f] font-medium">
+                          Or Direct Audio Link / URL
+                        </label>
+                        <input
+                          type="text"
+                          value={currentWedding.audioUrl || ""}
+                          onChange={(e) => {
+                            updateWedding({ audioUrl: e.target.value });
+                          }}
+                          placeholder="https://example.com/audio/wedding-melody.mp3"
+                          className="w-full bg-[#fffaf0] border border-[#bc965e] px-3.5 py-2 text-xs font-mono text-[#55313c] rounded focus:outline-none focus:ring-1 focus:ring-[#946f35]"
+                        />
+                        <p className="text-[10.5px] text-[#82704f] font-sans">
+                          Audio file is securely stored on Supabase Cloud and played seamlessly on guest smartphones and desktops.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-[#bc965e]/30 flex items-center justify-between text-xs text-[#82704f] font-serif">
+                      <span>Soundtrack updates apply instantly</span>
+                      <span className="text-[11px] text-[#946f35] font-sans">Option 2: Dedicated Tab</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

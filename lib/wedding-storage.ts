@@ -198,6 +198,8 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
         story_intro: wedding.storyIntro || "",
         final_heading: wedding.finalHeading || "",
         final_subtext: wedding.finalSubtext || (wedding.brideName && wedding.groomName ? `Wedding of ${wedding.brideName} & ${wedding.groomName}` : ""),
+        audio_url: wedding.audioUrl || "",
+        enable_intro_animation: wedding.enableIntroAnimation ?? true,
         data: wedding,
         updated_at: wedding.updatedAt
       },
@@ -295,6 +297,39 @@ export async function uploadWeddingPhoto(file: File, slug: string, slotName: str
       }
     } catch (err) {
       console.warn("Storage upload exception, falling back to local base64:", err);
+    }
+  }
+
+  // Fallback to local Base64 / Data URL
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function uploadWeddingAudio(file: File, slug: string): Promise<string> {
+  const supabase = getSupabaseClient();
+
+  if (supabase) {
+    try {
+      const fileExt = file.name.split(".").pop() || "mp3";
+      const filePath = `${slug}/audio-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("wedding-photos")
+        .upload(filePath, file, { upsert: true, contentType: file.type || "audio/mpeg" });
+
+      if (!uploadError) {
+        const { data } = supabase.storage.from("wedding-photos").getPublicUrl(filePath);
+        if (data?.publicUrl) {
+          return data.publicUrl;
+        }
+      } else {
+        console.warn("Supabase storage audio upload failed, falling back to local base64:", uploadError.message);
+      }
+    } catch (err) {
+      console.warn("Storage audio upload exception, falling back to local base64:", err);
     }
   }
 

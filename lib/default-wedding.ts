@@ -94,5 +94,7 @@ export const defaultWeddingData: WeddingData = {
   "muhurthamDetails": "With the blessings of our families, we invite you to be part of our most auspicious moment as we take our sacred vows and begin our lifelong journey of love and togetherness.",
   "invitationEyebrow": "IN THE PRESENCE OF LOVE & TRADITION",
   "invitationHeading": "You're invited",
-  "invitationSubtitle": "Together with our families,\nwe invite you to celebrate the wedding of"
+  "invitationSubtitle": "Together with our families,\nwe invite you to celebrate the wedding of",
+  "audioUrl": "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4",
+  "enableIntroAnimation": true
 };

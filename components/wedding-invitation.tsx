@@ -8,6 +8,7 @@ import { WeddingData } from "@/lib/types/wedding";
 import { defaultWeddingData } from "@/lib/default-wedding";
 import { subscribeToWeddingUpdates } from "@/lib/wedding-storage";
 import { setClientBranding } from "@/lib/branding";
+import { IntroEnvelope } from "@/components/intro-envelope";
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const part = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
@@ -778,6 +779,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
 
   return (
     <div ref={root} id="invitation-top" className={`invitation-film ${ready ? "ready" : ""} ${reduced ? "reduced" : ""}`}>
+      {data.enableIntroAnimation !== false && <IntroEnvelope data={data} />}
       <div className="film-loader" aria-hidden={ready}>
         <span className="loader-monogram">{(data.monogram || "S&J").toUpperCase()}</span>
         <div />

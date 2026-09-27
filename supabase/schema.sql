@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS public.weddings (
     story_intro TEXT,
     final_heading TEXT,
     final_subtext TEXT,
+    audio_url TEXT,
+    enable_intro_animation BOOLEAN DEFAULT true,
     data JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
