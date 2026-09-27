@@ -80,6 +80,7 @@ export const defaultWeddingData: WeddingData = {
   "groomName": "Hariharan M",
   "updatedAt": "2026-09-25T00:27:02.669Z",
   "venueName": "The Heritage Courtyard",
+  "venueLocationUrl": "https://www.google.com/maps/search/?api=1&query=The+Heritage+Courtyard+Mysore",
   "storyIntro": "Different paths, the same kind of forever.",
   "subheading": "ARE GETTING MARRIED",
   "displayDate": "16 November 2031",

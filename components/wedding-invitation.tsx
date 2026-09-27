@@ -820,9 +820,13 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
               <div className="dialog-actions">
                 <a
                   className="gold-button location-button"
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    `${data.venueName || ""} ${data.city || ""}`.trim()
-                  )}`}
+                  href={
+                    data.venueLocationUrl?.trim()
+                      ? data.venueLocationUrl.trim()
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          `${data.venueName || ""} ${data.city || ""}`.trim()
+                        )}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                 >
