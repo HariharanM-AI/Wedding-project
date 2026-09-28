@@ -1,80 +1,78 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { WeddingData } from "@/lib/types/wedding";
 
-const INTRO_ASSETS = [
-  "/Intro/Invi intro.png",
-  "/Intro/Intro seel glow.png",
-  "/Intro/Invi with glow.png",
-  "/Intro/Flow glowing intro.png",
-  "/Intro/Opening with intro glowing.png"
-];
-
+// Single Master Image provided by the user
+const ENVELOPE_IMAGE = "/Intro/Invi intro.png";
 const DEFAULT_AUDIO_URL = "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4";
+
+// Exact geometric flap clip-paths derived from Invi intro.png (914x1720)
+// Top flap seamlessly incorporates the top triangular fold and the circular wax seal at its apex
+const TOP_FLAP_CLIP_PATH =
+  "polygon(0.0% 0.0%, 100.0% 0.0%, 100.0% 1.8%, 66.0% 42.8%, 65.22% 45.66%, 65.95% 47.11%, 66.2% 48.6%, 65.95% 50.09%, 65.22% 51.54%, 64.03% 52.9%, 62.41% 54.13%, 60.41% 55.19%, 58.1% 56.05%, 55.54% 56.68%, 52.81% 57.07%, 50.0% 57.2%, 47.19% 57.07%, 44.46% 56.68%, 41.9% 56.05%, 39.59% 55.19%, 37.59% 54.13%, 35.97% 52.9%, 34.78% 51.54%, 34.05% 50.09%, 33.8% 48.6%, 34.05% 47.11%, 34.78% 45.66%, 34.0% 42.8%, 0.0% 1.8%)";
+
+// Bottom flap triangular fold pointing up towards the wax seal
+const BOTTOM_FLAP_CLIP_PATH =
+  "polygon(0.0% 100.0%, 100.0% 100.0%, 100.0% 90.0%, 50.0% 58.5%, 0.0% 90.0%)";
+
+// Left side panel fold
+const LEFT_FLAP_CLIP_PATH =
+  "polygon(0.0% 0.0%, 0.0% 100.0%, 0.0% 90.0%, 50.0% 58.5%, 50.0% 48.6%, 0.0% 1.8%)";
+
+// Right side panel fold
+const RIGHT_FLAP_CLIP_PATH =
+  "polygon(100.0% 0.0%, 100.0% 100.0%, 100.0% 90.0%, 50.0% 58.5%, 50.0% 48.6%, 100.0% 1.8%)";
+
+// Delicate star sparkles on floral relief coordinates (matching the video's floral glints)
+const FLORAL_SPARKLES = [
+  { top: "14.5%", left: "50%", delay: 0.8 },
+  { top: "17%", left: "34%", delay: 1.1 },
+  { top: "17%", left: "66%", delay: 1.25 },
+  { top: "40%", left: "19%", delay: 1.4 },
+  { top: "53%", left: "12%", delay: 1.6 },
+  { top: "40%", left: "81%", delay: 1.45 },
+  { top: "53%", left: "88%", delay: 1.7 },
+  { top: "83.5%", left: "50%", delay: 1.55 }
+];
 
 interface IntroEnvelopeProps {
   data: WeddingData;
 }
 
-// Keyframe stages mapped directly to the Master Prompt specification:
-// Keyframe 1: "idle"         - Calm closed invitation, awaiting explicit user tap
-// Keyframe 2: "illuminating" - Floral artwork and central seal begin to softly illuminate (0ms - 450ms)
-// Keyframe 3 & 4: "flowing"  - Champagne gold glow flowing naturally through floral vines & branches (450ms - 1450ms)
-// Keyframe 5 & 6: "opening"  - Envelope flap sections separate, warm golden light appears from inside (1450ms - 2500ms)
-// Keyframe 7: "radiant"      - Volumetric rays widen, bloom expands, camera pushes forward (2500ms - 3350ms)
-// Keyframe 8: "revealing"    - Champagne-white illumination fills screen, gently dissolves to reveal website (3350ms - 4150ms)
-// Keyframe 9: "complete"     - Overlay completely unmounted, wedding website active
-type CinematicStage =
-  | "idle"
-  | "illuminating"
-  | "flowing"
-  | "opening"
-  | "radiant"
-  | "revealing"
-  | "complete";
+type IntroPhase = "idle" | "awakening" | "opening" | "revealing" | "complete";
 
 export function IntroEnvelope({ data }: IntroEnvelopeProps) {
-  const [stage, setStage] = useState<CinematicStage>("idle");
+  const [phase, setPhase] = useState<IntroPhase>("idle");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [assetsReady, setAssetsReady] = useState<boolean>(false);
-  const [isRevealingDissolve, setIsRevealingDissolve] = useState<boolean>(false);
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasTriggeredRef = useRef<boolean>(false);
 
   const audioSrc = data.audioUrl?.trim() || DEFAULT_AUDIO_URL;
 
-  // Pre-decode all 5 master images on mount for 60FPS fluid transitions
+  // Pre-load the single envelope master image for instantaneous rendering
   useEffect(() => {
-    let isMounted = true;
-    const decodePromises = INTRO_ASSETS.map((src) => {
-      const img = new Image();
-      img.src = src;
-      return img.decode().catch(() => {});
-    });
-
-    Promise.all(decodePromises).then(() => {
-      if (isMounted) setAssetsReady(true);
-    });
-
-    return () => {
-      isMounted = false;
-    };
+    const img = new Image();
+    img.src = ENVELOPE_IMAGE;
+    img.onload = () => setImageLoaded(true);
+    img.decode().then(() => setImageLoaded(true)).catch(() => {});
   }, []);
 
-  // Lock body scroll while the cinematic intro overlay is active
+  // Lock body scroll while intro overlay is active
   useEffect(() => {
-    if (stage !== "complete") {
+    if (phase !== "complete") {
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = originalOverflow;
       };
     }
-  }, [stage]);
+  }, [phase]);
 
   // Synchronize audio mute state
   useEffect(() => {
@@ -83,11 +81,11 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     }
   }, [isMuted]);
 
-  function handleOpenEnvelope() {
-    if (hasTriggeredRef.current || stage !== "idle") return;
+  function handleStartOpening() {
+    if (hasTriggeredRef.current || phase !== "idle") return;
     hasTriggeredRef.current = true;
 
-    // Start background wedding music immediately upon user tap
+    // Start background wedding music immediately on user tap
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current
@@ -98,38 +96,23 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         });
     }
 
-    // Keyframe 2: Seal and floral artwork begin to illuminate
-    setStage("illuminating");
+    // Step 1: Awakening (0 - 2.0s) -> Wax seal glows, luminescence flows along vines
+    setPhase("awakening");
 
-    // Keyframe 3 & 4: Flowing champagne-gold light trails stream through floral vines
+    // Step 2: Opening (2.0s - 5.5s) -> Flaps smoothly separate with Framer Motion, light cavity opens
     setTimeout(() => {
-      setStage("flowing");
-    }, 450);
+      setPhase("opening");
+    }, 2000);
 
-    // Keyframe 5 & 6: Envelope sections physically separate, warm interior light emerges
+    // Step 3: Revealing (5.5s - 6.6s) -> Warm champagne light floods screen and dissolves
     setTimeout(() => {
-      setStage("opening");
-    }, 1450);
+      setPhase("revealing");
+    }, 5500);
 
-    // Keyframe 7: Volumetric light rays expand, camera pushes in gently
+    // Step 4: Complete (6.6s) -> Overlay unmounts completely, full website interactive
     setTimeout(() => {
-      setStage("radiant");
-    }, 2500);
-
-    // Keyframe 8: Champagne-white illumination expands to fill the screen
-    setTimeout(() => {
-      setStage("revealing");
-    }, 3350);
-
-    // Light gently dissolves away, revealing the wedding website content
-    setTimeout(() => {
-      setIsRevealingDissolve(true);
-    }, 3700);
-
-    // Keyframe 9: Complete cinematic ceremony and unmount overlay
-    setTimeout(() => {
-      setStage("complete");
-    }, 4150);
+      setPhase("complete");
+    }, 6600);
   }
 
   function toggleAudioPlayback() {
@@ -147,7 +130,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
   return (
     <>
-      {/* Background Wedding Soundtrack */}
+      {/* Background Wedding Music */}
       <audio
         ref={audioRef}
         src={audioSrc}
@@ -157,10 +140,10 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         onPause={() => setIsPlaying(false)}
       />
 
-      {/* Floating Royal Audio Controller Widget (Remains accessible on the invitation) */}
+      {/* Floating Royal Sound Controller (Matches the gold circular button in the video) */}
       <div
         className={`fixed bottom-5 right-5 z-40 transition-all duration-700 ease-out ${
-          stage === "opening" || stage === "radiant" || stage === "revealing" || stage === "complete" || isPlaying
+          phase !== "idle" || isPlaying
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 pointer-events-none"
         }`}
@@ -168,8 +151,8 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         <button
           onClick={toggleAudioPlayback}
           className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-[#fffaf0]/95 backdrop-blur-md border border-[#bc965e] shadow-lg shadow-[#946f35]/25 hover:border-[#946f35] hover:bg-[#fff7ea] hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer text-[#55313c]"
-          title={isPlaying ? "Pause wedding music" : "Play wedding music"}
-          aria-label={isPlaying ? "Pause wedding music" : "Play wedding music"}
+          title={isPlaying ? "Pause music" : "Play music"}
+          aria-label={isPlaying ? "Pause music" : "Play music"}
         >
           {/* Animated 3-Bar Equalizer */}
           <div className="flex items-end gap-[3px] h-3.5 px-0.5" aria-hidden="true">
@@ -190,330 +173,447 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
             />
           </div>
 
-          {/* Speaker Line Icon */}
           <div className="text-[#946f35] group-hover:text-[#55313c] transition-colors">
             {isMuted || !isPlaying ? <VolumeX size={15} /> : <Volume2 size={15} />}
           </div>
 
-          {/* Typography Label */}
           <span className="font-serif text-xs font-semibold tracking-wider uppercase text-[#55313c] pr-1">
             {isPlaying && !isMuted ? "Sound on" : "Music"}
           </span>
         </button>
       </div>
 
-      {/* Main Cinematic Intro Overlay */}
-      {stage !== "complete" && (
-        <div
-          onClick={handleOpenEnvelope}
-          className={`fixed inset-0 z-50 flex items-center justify-center select-none overflow-hidden cursor-pointer transition-opacity duration-700 ease-out ${
-            isRevealingDissolve ? "opacity-0 pointer-events-none" : "opacity-100"
-          }`}
-          style={{
-            background:
-              "radial-gradient(ellipse at center, #1e110c 0%, #120805 55%, #080302 100%)"
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Tap to open the wedding invitation"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleOpenEnvelope();
-            }
-          }}
-        >
-          {/* Subtle Ambient Floating Golden Motes in Atmosphere */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
-            <div className="ambient-mote mote-1" />
-            <div className="ambient-mote mote-2" />
-            <div className="ambient-mote mote-3" />
-            <div className="ambient-mote mote-4" />
-          </div>
-
-          {/* Master Invitation Card Container (Fills mobile viewport, maintains exact artwork proportions) */}
-          <div
-            className={`relative w-full h-full max-w-[460px] max-h-[840px] sm:h-[92vh] sm:rounded-2xl overflow-hidden shadow-2xl transition-all duration-1000 ease-out [perspective:1400px] [transform-style:preserve-3d] ${
-              stage === "radiant" || stage === "revealing"
-                ? "sm:scale-[1.06] shadow-[0_0_90px_rgba(223,190,125,0.7)]"
-                : stage === "opening"
-                ? "sm:scale-[1.03] shadow-[0_0_60px_rgba(223,190,125,0.5)]"
-                : "shadow-[0_20px_60px_rgba(0,0,0,0.85)] border-0 sm:border sm:border-[#bc965e]/50"
-            }`}
+      {/* Main Cinematic Opening Overlay */}
+      <AnimatePresence>
+        {phase !== "complete" && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: phase === "revealing" ? 0 : 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.9, ease: "easeInOut" }}
+            onClick={handleStartOpening}
+            className="fixed inset-0 z-50 flex items-center justify-center select-none overflow-hidden cursor-pointer"
             style={{
-              transform:
-                stage === "radiant"
-                  ? "scale(1.08)"
-                  : stage === "opening"
-                  ? "scale(1.03)"
-                  : stage === "flowing"
-                  ? "scale(1.015)"
-                  : "scale(1)"
+              background:
+                "radial-gradient(ellipse at center, #1a0f0b 0%, #110704 55%, #080302 100%)"
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Tap to open the wedding invitation"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleStartOpening();
+              }
             }}
           >
-            {/* ========================================================
-                KEYFRAME 7 & 8: INTERIOR OPEN ENVELOPE WITH LIGHT CAVITY
-                (Revealed behind separating sections as envelope opens)
-                ======================================================== */}
-            <img
-              src="/Intro/Opening with intro glowing.png"
-              alt="Open Wedding Envelope"
-              className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
-              style={{
-                opacity: stage === "opening" || stage === "radiant" || stage === "revealing" ? 1 : 0,
-                transition: "opacity 900ms cubic-bezier(0.25, 1, 0.5, 1)"
-              }}
-            />
-
-            {/* ========================================================
-                VOLUMETRIC WARM LIGHT BEAMS FROM CENTRAL OPENING
-                (Originates from actual center opening at 50%, 48.5%)
-                ======================================================== */}
-            <div
-              className="absolute left-1/2 top-[48.5%] -translate-x-1/2 pointer-events-none transition-all duration-1000 ease-out origin-bottom"
-              style={{
-                width: "90%",
-                height: "65%",
-                transform:
-                  stage === "radiant" || stage === "revealing"
-                    ? "translateX(-50%) translateY(-100%) scaleY(1.4) scaleX(1.2)"
-                    : stage === "opening"
-                    ? "translateX(-50%) translateY(-100%) scaleY(1.15) scaleX(1.0)"
-                    : "translateX(-50%) translateY(-100%) scaleY(0) scaleX(0.3)",
-                opacity: stage === "opening" ? 0.85 : stage === "radiant" || stage === "revealing" ? 1 : 0,
-                background:
-                  "linear-gradient(to top, rgba(255,248,225,1) 0%, rgba(240,215,145,0.85) 30%, rgba(188,150,94,0.35) 70%, transparent 100%)",
-                clipPath: "polygon(20% 100%, 80% 100%, 100% 0%, 0% 0%)",
-                filter: "blur(12px)"
-              }}
-            />
-
-            {/* Secondary diffused atmospheric bloom */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-1000 ease-out"
-              style={{
-                opacity: stage === "radiant" || stage === "revealing" ? 0.9 : stage === "opening" ? 0.5 : 0,
-                background:
-                  "radial-gradient(circle at 50% 48.5%, rgba(255, 245, 215, 0.95) 0%, rgba(235, 205, 140, 0.45) 45%, transparent 75%)"
-              }}
-            />
-
-            {/* ========================================================
-                KEYFRAME 4: FLOWING GLOWING VINES & BRANCHES
-                (Animated expanding radial wave mask creates genuine
-                 light movement traveling along the floral ornamentation)
-                ======================================================== */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-600 ease-out"
-              style={{
-                opacity:
-                  stage === "flowing" || stage === "opening"
-                    ? 1
-                    : stage === "illuminating"
-                    ? 0.5
-                    : 0,
-                maskImage:
-                  stage === "flowing" || stage === "opening" || stage === "radiant"
-                    ? "radial-gradient(circle at 50% 48.5%, black 0%, black 85%, transparent 100%)"
-                    : "radial-gradient(circle at 50% 48.5%, black 0%, black 15%, transparent 35%)",
-                WebkitMaskImage:
-                  stage === "flowing" || stage === "opening" || stage === "radiant"
-                    ? "radial-gradient(circle at 50% 48.5%, black 0%, black 85%, transparent 100%)"
-                    : "radial-gradient(circle at 50% 48.5%, black 0%, black 15%, transparent 35%)",
-                transition: "mask-image 1000ms cubic-bezier(0.25, 0.1, 0.25, 1), -webkit-mask-image 1000ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity 600ms ease-out"
-              }}
-            >
-              <img
-                src="/Intro/Flow glowing intro.png"
-                alt="Glowing Floral Relief"
-                className="w-full h-full object-cover object-center pointer-events-none"
-              />
+            {/* Ambient Floating Golden Motes in Atmosphere */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
+              <div className="ambient-mote mote-1" />
+              <div className="ambient-mote mote-2" />
+              <div className="ambient-mote mote-3" />
+              <div className="ambient-mote mote-4" />
             </div>
 
-            {/* ========================================================
-                KEYFRAME 2 & 3: WAX SEAL ILLUMINATION & FIRST WAVE
-                ======================================================== */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-500 ease-out"
+            {/* Master Envelope Canvas Container */}
+            <motion.div
+              className="relative w-full h-full max-w-[460px] max-h-[860px] sm:h-[92vh] sm:rounded-2xl overflow-hidden shadow-2xl"
+              animate={{
+                scale:
+                  phase === "opening"
+                    ? 1.04
+                    : phase === "awakening"
+                    ? 1.015
+                    : 1
+              }}
+              transition={{ duration: 2.5, ease: "easeOut" }}
               style={{
-                opacity: stage === "illuminating" ? 1 : 0
+                boxShadow:
+                  phase === "opening"
+                    ? "0 0 80px rgba(223, 190, 125, 0.6), 0 30px 80px rgba(0,0,0,0.9)"
+                    : "0 20px 60px rgba(0, 0, 0, 0.85)"
               }}
             >
-              <img
-                src="/Intro/Intro seel glow.png"
-                alt="Illuminated Wax Seal"
-                className="w-full h-full object-cover object-center pointer-events-none"
-              />
-            </div>
-
-            {/* ========================================================
-                KEYFRAME 1: MASTER CLOSED INVITATION ENVELOPE
-                (Active during idle; fades as light awakens)
-                ======================================================== */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-700 ease-out"
-              style={{
-                opacity: stage === "idle" ? 1 : 0
-              }}
-            >
-              <img
-                src="/Intro/Invi intro.png"
-                alt="Closed Wedding Invitation Envelope"
-                className="w-full h-full object-cover object-center pointer-events-none"
-              />
-            </div>
-
-            {/* Subtle ambient light breathing over seal in idle state */}
-            {stage === "idle" && (
-              <div
-                className="absolute left-1/2 top-[48.5%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
-                style={{
-                  background:
-                    "radial-gradient(circle, rgba(235, 205, 140, 0.35) 0%, rgba(223, 190, 125, 0.12) 50%, transparent 75%)"
+              {/* ========================================================
+                  LAYER 0: INTERIOR CAVITY & INVITATION REVEAL PEEK
+                  (Situated underneath the parting flaps)
+                  ======================================================== */}
+              <motion.div
+                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none overflow-hidden"
+                style={{ zIndex: 1 }}
+                animate={{
+                  scale: phase === "opening" || phase === "revealing" ? [0.92, 1.03] : 0.92
                 }}
-              />
-            )}
-
-            {/* ========================================================
-                KEYFRAME 5: PHYSICAL 3D TOP FLAP OPENING
-                (Smoothly lifts and folds upwards in 3D space)
-                ======================================================== */}
-            {stage !== "idle" && (
-              <div
-                className="absolute top-0 left-0 w-full pointer-events-none origin-top [transform-style:preserve-3d]"
-                style={{
-                  height: "50%",
-                  transform:
-                    stage === "opening" || stage === "radiant" || stage === "revealing"
-                      ? "rotateX(-175deg)"
-                      : "rotateX(0deg)",
-                  transition: "transform 1100ms cubic-bezier(0.35, 0.0, 0.15, 1)",
-                  backfaceVisibility: "hidden",
-                  zIndex: 25
-                }}
+                transition={{ duration: 3.2, ease: [0.25, 1, 0.5, 1] }}
               >
+                {/* Parchment background with soft luxury wedding glow */}
                 <div
-                  className="relative w-full h-full overflow-hidden"
+                  className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center select-none"
                   style={{
-                    clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                    filter:
-                      stage === "opening" || stage === "radiant"
-                        ? "drop-shadow(0 20px 30px rgba(0,0,0,0.6))"
-                        : "none"
+                    background:
+                      "radial-gradient(ellipse at 50% 49%, #ffffff 0%, #fdf8ee 40%, #f5e9d3 75%, #ebd4ae 100%)"
                   }}
                 >
-                  <img
-                    src="/Intro/Flow glowing intro.png"
-                    alt="Envelope Flap"
-                    className="absolute top-0 left-0 w-full h-[200%] object-cover object-top pointer-events-none"
-                  />
+                  {/* Subtle royal framing lines */}
+                  <div className="absolute inset-4 border border-[#bc965e]/30 rounded-xl pointer-events-none" />
+                  <div className="absolute inset-5 border border-[#bc965e]/15 rounded-lg pointer-events-none" />
+
+                  {/* Volumetric Center Light Core */}
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
-                        "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)"
+                        "radial-gradient(ellipse at 50% 49%, rgba(255,255,255,1) 0%, rgba(255,245,215,0.92) 25%, rgba(223,190,125,0.45) 60%, transparent 85%)",
+                      filter: "blur(12px)"
+                    }}
+                  />
+
+                  {/* Horizontal Flare Beams emanating from central slit */}
+                  <div
+                    className="absolute left-0 right-0 top-[49%] -translate-y-1/2 h-56 pointer-events-none"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(240,215,145,0.7) 35%, transparent 75%)",
+                      filter: "blur(16px)"
+                    }}
+                  />
+
+                  {/* Couple's Monogram & Wedding Announcement inside Opening */}
+                  <div className="relative z-10 flex flex-col items-center max-w-[280px]">
+                    <span className="font-serif text-[10px] sm:text-[11px] tracking-[0.32em] uppercase text-[#8c6b3c] mb-2 font-medium">
+                      With the blessings of our families
+                    </span>
+                    <h2 className="font-serif text-3xl sm:text-4xl text-[#55313c] leading-tight font-normal">
+                      {data.brideName}
+                    </h2>
+                    <span className="font-serif text-lg sm:text-xl text-[#bc965e] italic my-0.5">
+                      &
+                    </span>
+                    <h2 className="font-serif text-3xl sm:text-4xl text-[#55313c] leading-tight font-normal mb-3">
+                      {data.groomName}
+                    </h2>
+                    <div className="w-12 h-[1px] bg-[#bc965e]/60 my-1.5" />
+                    <p className="font-serif text-xs tracking-[0.24em] text-[#8c6b3c] uppercase mt-1">
+                      {data.displayDate}
+                    </p>
+                    <p className="font-sans text-[10px] tracking-[0.16em] text-[#55313c]/70 uppercase mt-1">
+                      {data.venueName} · {data.city}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* ========================================================
+                  LAYER 1: LEFT FLAP
+                  (Cut from the single image using CSS clip-path)
+                  ======================================================== */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  clipPath: LEFT_FLAP_CLIP_PATH,
+                  zIndex: 10
+                }}
+                animate={{
+                  x: phase === "opening" || phase === "revealing" ? "-4%" : "0%"
+                }}
+                transition={{ duration: 2.8, ease: [0.25, 1, 0.35, 1] }}
+              >
+                <img
+                  src={ENVELOPE_IMAGE}
+                  alt="Left envelope flap"
+                  className="w-full h-full object-cover object-center pointer-events-none"
+                />
+                {/* Diagonal shadow on inner edge */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-40"
+                  style={{
+                    background:
+                      "linear-gradient(to right, transparent 60%, rgba(0,0,0,0.45) 100%)"
+                  }}
+                />
+              </motion.div>
+
+              {/* ========================================================
+                  LAYER 2: RIGHT FLAP
+                  (Cut from the single image using CSS clip-path)
+                  ======================================================== */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  clipPath: RIGHT_FLAP_CLIP_PATH,
+                  zIndex: 10
+                }}
+                animate={{
+                  x: phase === "opening" || phase === "revealing" ? "4%" : "0%"
+                }}
+                transition={{ duration: 2.8, ease: [0.25, 1, 0.35, 1] }}
+              >
+                <img
+                  src={ENVELOPE_IMAGE}
+                  alt="Right envelope flap"
+                  className="w-full h-full object-cover object-center pointer-events-none"
+                />
+                {/* Diagonal shadow on inner edge */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-40"
+                  style={{
+                    background:
+                      "linear-gradient(to left, transparent 60%, rgba(0,0,0,0.45) 100%)"
+                  }}
+                />
+              </motion.div>
+
+              {/* ========================================================
+                  LAYER 3: BOTTOM FLAP
+                  (Glides downward with Framer Motion, casts upward shadow)
+                  ======================================================== */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  clipPath: BOTTOM_FLAP_CLIP_PATH,
+                  filter:
+                    phase === "opening" || phase === "revealing"
+                      ? "drop-shadow(0 -16px 26px rgba(0, 0, 0, 0.55))"
+                      : "none",
+                  zIndex: 15
+                }}
+                animate={{
+                  y: phase === "opening" || phase === "revealing" ? "42%" : "0%"
+                }}
+                transition={{ duration: 2.9, ease: [0.25, 1, 0.35, 1] }}
+              >
+                <img
+                  src={ENVELOPE_IMAGE}
+                  alt="Bottom envelope flap"
+                  className="w-full h-full object-cover object-center pointer-events-none"
+                />
+              </motion.div>
+
+              {/* ========================================================
+                  LAYER 4: TOP FLAP WITH WAX SEAL
+                  (Glides smoothly upward with Framer Motion, casts shadow down)
+                  ======================================================== */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  clipPath: TOP_FLAP_CLIP_PATH,
+                  filter:
+                    phase === "opening" || phase === "revealing"
+                      ? "drop-shadow(0 20px 32px rgba(0, 0, 0, 0.6))"
+                      : "none",
+                  zIndex: 20
+                }}
+                animate={{
+                  y: phase === "opening" || phase === "revealing" ? "-42%" : "0%"
+                }}
+                transition={{ duration: 2.9, ease: [0.25, 1, 0.35, 1] }}
+              >
+                <img
+                  src={ENVELOPE_IMAGE}
+                  alt="Top envelope flap with seal"
+                  className="w-full h-full object-cover object-center pointer-events-none"
+                />
+
+                {/* Wax seal golden sheen highlight when awakening */}
+                <motion.div
+                  className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: phase === "awakening" ? [0, 0.85, 0.6] : 0,
+                    scale: phase === "awakening" ? [0.95, 1.08, 1.02] : 1
+                  }}
+                  transition={{ duration: 1.8, ease: "easeOut" }}
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(255, 235, 170, 0.8) 0%, rgba(223, 190, 125, 0.4) 50%, transparent 75%)",
+                    mixBlendMode: "color-dodge"
+                  }}
+                />
+              </motion.div>
+
+              {/* ========================================================
+                  LAYER 5: BASE INTACT IMAGE (ACTIVE DURING IDLE)
+                  (Ensures 100% seam-free pristine rendering before tap)
+                  ======================================================== */}
+              {phase === "idle" && (
+                <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
+                  <img
+                    src={ENVELOPE_IMAGE}
+                    alt="Wedding Invitation Envelope"
+                    className="w-full h-full object-cover object-center pointer-events-none"
+                  />
+                  {/* Gentle ambient light breathing over the seal in idle state */}
+                  <div
+                    className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(235, 205, 140, 0.35) 0%, rgba(223, 190, 125, 0.12) 50%, transparent 75%)"
                     }}
                   />
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Dynamic shadow underneath the lifting flap */}
-            <div
-              className="absolute left-0 w-full pointer-events-none transition-opacity duration-700 ease-out"
-              style={{
-                top: "47%",
-                height: "22%",
-                opacity: stage === "opening" ? 0.5 : 0,
-                background:
-                  "radial-gradient(ellipse at top, rgba(0,0,0,0.65) 0%, transparent 70%)"
-              }}
-            />
+              {/* ========================================================
+                  LAYER 6: BOTANICAL LUMINESCENCE SWEEP & SPARKLES
+                  (Lights up the embossed floral relief vines in awakening)
+                  ======================================================== */}
+              {phase === "awakening" && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ zIndex: 28 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0.85] }}
+                  transition={{ duration: 1.8, ease: "easeOut" }}
+                >
+                  {/* High-contrast golden luminescence overlay on relief */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      mixBlendMode: "color-dodge",
+                      filter: "brightness(2.2) contrast(2.4) saturate(1.8)"
+                    }}
+                  >
+                    <img
+                      src={ENVELOPE_IMAGE}
+                      alt="Floral Glow"
+                      className="w-full h-full object-cover object-center pointer-events-none"
+                    />
+                  </div>
+
+                  {/* Twinkling Star Sparkles along the floral vines */}
+                  {FLORAL_SPARKLES.map((sparkle, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="absolute pointer-events-none"
+                      style={{
+                        top: sparkle.top,
+                        left: sparkle.left,
+                        transform: "translate(-50%, -50%)"
+                      }}
+                      initial={{ scale: 0, opacity: 0, rotate: 0 }}
+                      animate={{
+                        scale: [0, 1.25, 0],
+                        opacity: [0, 1, 0],
+                        rotate: [0, 90]
+                      }}
+                      transition={{
+                        duration: 1.2,
+                        delay: sparkle.delay,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="filter drop-shadow-[0_0_8px_rgba(255,235,170,1)]"
+                      >
+                        <path
+                          d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"
+                          fill="url(#goldSparkleGrad)"
+                        />
+                        <defs>
+                          <radialGradient
+                            id="goldSparkleGrad"
+                            cx="0.5"
+                            cy="0.5"
+                            r="0.5"
+                            fx="0.5"
+                            fy="0.5"
+                          >
+                            <stop offset="0%" stopColor="#ffffff" />
+                            <stop offset="50%" stopColor="#faecd0" />
+                            <stop offset="100%" stopColor="#bc965e" />
+                          </radialGradient>
+                        </defs>
+                      </svg>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+
+              {/* ========================================================
+                  LAYER 7: "TAP TO OPEN" BADGE & HOTSPOT (IDLE STATE)
+                  ======================================================== */}
+              {phase === "idle" && (
+                <>
+                  {/* Central seal tap hotspot */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartOpening();
+                    }}
+                    className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full cursor-pointer z-30 focus:outline-none focus:ring-0"
+                    aria-label="Tap central seal to open invitation"
+                  />
+
+                  {/* "TAP TO OPEN" Indicator with upward arrow pointing at the seal */}
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-30 select-none transition-all duration-400"
+                    style={{ top: "54.8%" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartOpening();
+                    }}
+                  >
+                    <div className="text-[#946f35] animate-arrow-bob mb-1">
+                      <svg
+                        width="14"
+                        height="16"
+                        viewBox="0 0 14 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="filter drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]"
+                      >
+                        <path
+                          d="M7 14.5V2.5M7 2.5L2 7.5M7 2.5L12 7.5"
+                          stroke="#8a6327"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+
+                    <div className="px-3 py-1 rounded-full bg-[#fdfbf6]/85 border border-[#bc965e]/50 backdrop-blur-xs shadow-[0_2px_10px_rgba(188,150,94,0.18)] animate-text-breathe">
+                      <span className="font-serif text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#694e33] font-medium">
+                        Tap to Open
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Preload spinner indicator */}
+              {!imageLoaded && phase === "idle" && (
+                <div className="absolute top-4 right-4 z-40 pointer-events-none">
+                  <div className="w-3.5 h-3.5 rounded-full border border-[#bc965e] border-t-transparent animate-spin" />
+                </div>
+              )}
+            </motion.div>
 
             {/* ========================================================
-                INTERACTION: CENTRAL SEAL HOTSPOT
-                (Allows guest to tap either the seal or TAP TO OPEN)
+                LAYER 8: SOFT CHAMPAGNE FILL REVEAL
+                (Expands gently to fill screen and dissolve into website)
                 ======================================================== */}
-            {stage === "idle" && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenEnvelope();
+            {phase === "revealing" && (
+              <motion.div
+                className="fixed inset-0 pointer-events-none z-[60]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.95, 0] }}
+                transition={{ duration: 1.1, ease: "easeInOut" }}
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 50%, #fffdf7 15%, #f6ecd7 65%, #edd9b5 100%)"
                 }}
-                className="absolute left-1/2 top-[48.5%] -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full cursor-pointer z-30 focus:outline-none focus:ring-0"
-                aria-label="Tap central seal to open invitation"
               />
             )}
-
-            {/* ========================================================
-                SECTION 2: "TAP TO OPEN" WITH UPWARD ARROW BELOW SEAL
-                Hierarchy:
-                     [ CENTRAL SEAL ]
-                            ↑
-                       TAP TO OPEN
-                ======================================================== */}
-            {stage === "idle" && (
-              <div
-                className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-30 select-none transition-all duration-400"
-                style={{ top: "54.8%" }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenEnvelope();
-                }}
-              >
-                {/* Arrow pointing UPWARD toward the central seal */}
-                <div className="text-[#946f35] animate-arrow-bob mb-1">
-                  <svg
-                    width="14"
-                    height="16"
-                    viewBox="0 0 14 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="filter drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]"
-                  >
-                    <path
-                      d="M7 14.5V2.5M7 2.5L2 7.5M7 2.5L12 7.5"
-                      stroke="#8a6327"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-
-                {/* Subtle refined typography matching the invitation */}
-                <div className="px-3 py-1 rounded-full bg-[#fdfbf6]/85 border border-[#bc965e]/50 backdrop-blur-xs shadow-[0_2px_10px_rgba(188,150,94,0.18)] animate-text-breathe">
-                  <span className="font-serif text-[11px] sm:text-xs tracking-[0.28em] uppercase text-[#694e33] font-medium">
-                    Tap to Open
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Subdued pre-decoding indicator */}
-            {!assetsReady && stage === "idle" && (
-              <div className="absolute top-4 right-4 z-40 pointer-events-none">
-                <div className="w-3.5 h-3.5 rounded-full border border-[#bc965e] border-t-transparent animate-spin" />
-              </div>
-            )}
-          </div>
-
-          {/* ========================================================
-              KEYFRAME 8: SOFT CHAMPAGNE-WHITE ILLUMINATION FILL
-              (Screen gently fills with warm champagne light, then fades
-               to reveal the wedding website naturally without hard cut)
-              ======================================================== */}
-          <div
-            className="fixed inset-0 pointer-events-none transition-opacity duration-700 ease-out z-[60]"
-            style={{
-              opacity: stage === "revealing" && !isRevealingDissolve ? 0.95 : isRevealingDissolve ? 0 : 0,
-              background:
-                "radial-gradient(circle at 50% 50%, #fffdf7 15%, #f6ecd7 65%, #edd9b5 100%)"
-            }}
-          />
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
