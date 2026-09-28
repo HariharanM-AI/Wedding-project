@@ -7,6 +7,7 @@ import { WeddingData } from "@/lib/types/wedding";
 
 // Single Master Image provided by the user
 const ENVELOPE_IMAGE = "/Intro/Invi intro.png";
+const GOLD_RELIEF_IMAGE = "/Intro/invi-gold-relief.png";
 const DEFAULT_AUDIO_URL = "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4";
 
 // Exact geometric flap clip-paths derived from Invi intro.png (914x1720)
@@ -28,14 +29,14 @@ const RIGHT_FLAP_CLIP_PATH =
 
 // Delicate star sparkles on floral relief coordinates (matching the video's floral glints)
 const FLORAL_SPARKLES = [
-  { top: "14.5%", left: "50%", delay: 0.8 },
-  { top: "17%", left: "34%", delay: 1.1 },
-  { top: "17%", left: "66%", delay: 1.25 },
-  { top: "40%", left: "19%", delay: 1.4 },
-  { top: "53%", left: "12%", delay: 1.6 },
-  { top: "40%", left: "81%", delay: 1.45 },
-  { top: "53%", left: "88%", delay: 1.7 },
-  { top: "83.5%", left: "50%", delay: 1.55 }
+  { top: "14.5%", left: "50%", delay: 0.1 },
+  { top: "17%", left: "34%", delay: 0.25 },
+  { top: "17%", left: "66%", delay: 0.35 },
+  { top: "40%", left: "19%", delay: 0.45 },
+  { top: "53%", left: "12%", delay: 0.6 },
+  { top: "40%", left: "81%", delay: 0.5 },
+  { top: "53%", left: "88%", delay: 0.65 },
+  { top: "83.5%", left: "50%", delay: 0.55 }
 ];
 
 interface IntroEnvelopeProps {
@@ -55,12 +56,15 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
   const audioSrc = data.audioUrl?.trim() || DEFAULT_AUDIO_URL;
 
-  // Pre-load the single envelope master image for instantaneous rendering
+  // Pre-load the envelope master images for instantaneous 60fps rendering
   useEffect(() => {
-    const img = new Image();
-    img.src = ENVELOPE_IMAGE;
-    img.onload = () => setImageLoaded(true);
-    img.decode().then(() => setImageLoaded(true)).catch(() => {});
+    const img1 = new Image();
+    img1.src = ENVELOPE_IMAGE;
+    img1.onload = () => setImageLoaded(true);
+
+    const img2 = new Image();
+    img2.src = GOLD_RELIEF_IMAGE;
+    img2.onload = () => {};
   }, []);
 
   // Lock body scroll while intro overlay is active
@@ -96,23 +100,23 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         });
     }
 
-    // Step 1: Awakening (0 - 2.0s) -> Wax seal glows, luminescence flows along vines
+    // Step 1: Awakening (0ms - 700ms) -> Wax seal glows with golden sheen, luminescence washes over vines
     setPhase("awakening");
 
-    // Step 2: Opening (2.0s - 5.5s) -> Flaps smoothly separate with Framer Motion, light cavity opens
+    // Step 2: Opening (700ms - 3600ms) -> Flaps smoothly glide open with Framer Motion, light cavity expands
     setTimeout(() => {
       setPhase("opening");
-    }, 2000);
+    }, 700);
 
-    // Step 3: Revealing (5.5s - 6.6s) -> Warm champagne light floods screen and dissolves
+    // Step 3: Revealing (3600ms - 4400ms) -> Soft champagne light floods screen and dissolves
     setTimeout(() => {
       setPhase("revealing");
-    }, 5500);
+    }, 3600);
 
-    // Step 4: Complete (6.6s) -> Overlay unmounts completely, full website interactive
+    // Step 4: Complete (4400ms) -> Overlay unmounts completely, full website interactive
     setTimeout(() => {
       setPhase("complete");
-    }, 6600);
+    }, 4400);
   }
 
   function toggleAudioPlayback() {
@@ -128,6 +132,8 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     }
   }
 
+  const isOpening = phase === "opening" || phase === "revealing";
+
   return (
     <>
       {/* Background Wedding Music */}
@@ -140,7 +146,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         onPause={() => setIsPlaying(false)}
       />
 
-      {/* Floating Royal Sound Controller (Matches the gold circular button in the video) */}
+      {/* Floating Royal Sound Controller Widget (Matches the gold button in reference video) */}
       <div
         className={`fixed bottom-5 right-5 z-40 transition-all duration-700 ease-out ${
           phase !== "idle" || isPlaying
@@ -190,7 +196,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
             initial={{ opacity: 1 }}
             animate={{ opacity: phase === "revealing" ? 0 : 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.9, ease: "easeInOut" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
             onClick={handleStartOpening}
             className="fixed inset-0 z-50 flex items-center justify-center select-none overflow-hidden cursor-pointer"
             style={{
@@ -207,7 +213,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               }
             }}
           >
-            {/* Ambient Floating Golden Motes in Atmosphere */}
+            {/* Ambient Floating Golden Motes */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
               <div className="ambient-mote mote-1" />
               <div className="ambient-mote mote-2" />
@@ -219,19 +225,13 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
             <motion.div
               className="relative w-full h-full max-w-[460px] max-h-[860px] sm:h-[92vh] sm:rounded-2xl overflow-hidden shadow-2xl"
               animate={{
-                scale:
-                  phase === "opening"
-                    ? 1.04
-                    : phase === "awakening"
-                    ? 1.015
-                    : 1
+                scale: isOpening ? 1.04 : phase === "awakening" ? 1.015 : 1
               }}
               transition={{ duration: 2.5, ease: "easeOut" }}
               style={{
-                boxShadow:
-                  phase === "opening"
-                    ? "0 0 80px rgba(223, 190, 125, 0.6), 0 30px 80px rgba(0,0,0,0.9)"
-                    : "0 20px 60px rgba(0, 0, 0, 0.85)"
+                boxShadow: isOpening
+                  ? "0 0 80px rgba(223, 190, 125, 0.6), 0 30px 80px rgba(0,0,0,0.9)"
+                  : "0 20px 60px rgba(0, 0, 0, 0.85)"
               }}
             >
               {/* ========================================================
@@ -242,9 +242,9 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                 className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none overflow-hidden"
                 style={{ zIndex: 1 }}
                 animate={{
-                  scale: phase === "opening" || phase === "revealing" ? [0.92, 1.03] : 0.92
+                  scale: isOpening ? [0.93, 1.02] : 0.93
                 }}
-                transition={{ duration: 3.2, ease: [0.25, 1, 0.5, 1] }}
+                transition={{ duration: 2.8, ease: [0.25, 1, 0.5, 1] }}
               >
                 {/* Parchment background with soft luxury wedding glow */}
                 <div
@@ -263,12 +263,12 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(ellipse at 50% 49%, rgba(255,255,255,1) 0%, rgba(255,245,215,0.92) 25%, rgba(223,190,125,0.45) 60%, transparent 85%)",
+                        "radial-gradient(ellipse at 50% 49%, rgba(255,255,255,1) 0%, rgba(255,245,215,0.95) 25%, rgba(223,190,125,0.45) 60%, transparent 85%)",
                       filter: "blur(12px)"
                     }}
                   />
 
-                  {/* Horizontal Flare Beams emanating from central slit */}
+                  {/* Horizontal Flare Beams emanating from central opening */}
                   <div
                     className="absolute left-0 right-0 top-[49%] -translate-y-1/2 h-56 pointer-events-none"
                     style={{
@@ -305,7 +305,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
               {/* ========================================================
                   LAYER 1: LEFT FLAP
-                  (Cut from the single image using CSS clip-path)
+                  (Cut from single image using CSS clip-path)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
@@ -314,28 +314,20 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                   zIndex: 10
                 }}
                 animate={{
-                  x: phase === "opening" || phase === "revealing" ? "-4%" : "0%"
+                  x: isOpening ? "-4%" : "0%"
                 }}
-                transition={{ duration: 2.8, ease: [0.25, 1, 0.35, 1] }}
+                transition={{ duration: 2.6, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
                   src={ENVELOPE_IMAGE}
                   alt="Left envelope flap"
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
-                {/* Diagonal shadow on inner edge */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-40"
-                  style={{
-                    background:
-                      "linear-gradient(to right, transparent 60%, rgba(0,0,0,0.45) 100%)"
-                  }}
-                />
               </motion.div>
 
               {/* ========================================================
                   LAYER 2: RIGHT FLAP
-                  (Cut from the single image using CSS clip-path)
+                  (Cut from single image using CSS clip-path)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
@@ -344,22 +336,14 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                   zIndex: 10
                 }}
                 animate={{
-                  x: phase === "opening" || phase === "revealing" ? "4%" : "0%"
+                  x: isOpening ? "4%" : "0%"
                 }}
-                transition={{ duration: 2.8, ease: [0.25, 1, 0.35, 1] }}
+                transition={{ duration: 2.6, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
                   src={ENVELOPE_IMAGE}
                   alt="Right envelope flap"
                   className="w-full h-full object-cover object-center pointer-events-none"
-                />
-                {/* Diagonal shadow on inner edge */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-40"
-                  style={{
-                    background:
-                      "linear-gradient(to left, transparent 60%, rgba(0,0,0,0.45) 100%)"
-                  }}
                 />
               </motion.div>
 
@@ -371,16 +355,12 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   clipPath: BOTTOM_FLAP_CLIP_PATH,
-                  filter:
-                    phase === "opening" || phase === "revealing"
-                      ? "drop-shadow(0 -16px 26px rgba(0, 0, 0, 0.55))"
-                      : "none",
                   zIndex: 15
                 }}
                 animate={{
-                  y: phase === "opening" || phase === "revealing" ? "42%" : "0%"
+                  y: isOpening ? "42%" : "0%"
                 }}
-                transition={{ duration: 2.9, ease: [0.25, 1, 0.35, 1] }}
+                transition={{ duration: 2.7, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
                   src={ENVELOPE_IMAGE}
@@ -391,22 +371,18 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
               {/* ========================================================
                   LAYER 4: TOP FLAP WITH WAX SEAL
-                  (Glides smoothly upward with Framer Motion, casts shadow down)
+                  (Glides smoothly upward with Framer Motion)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   clipPath: TOP_FLAP_CLIP_PATH,
-                  filter:
-                    phase === "opening" || phase === "revealing"
-                      ? "drop-shadow(0 20px 32px rgba(0, 0, 0, 0.6))"
-                      : "none",
                   zIndex: 20
                 }}
                 animate={{
-                  y: phase === "opening" || phase === "revealing" ? "-42%" : "0%"
+                  y: isOpening ? "-42%" : "0%"
                 }}
-                transition={{ duration: 2.9, ease: [0.25, 1, 0.35, 1] }}
+                transition={{ duration: 2.7, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
                   src={ENVELOPE_IMAGE}
@@ -414,15 +390,15 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
 
-                {/* Wax seal golden sheen highlight when awakening */}
+                {/* Wax seal golden sheen highlight during awakening */}
                 <motion.div
                   className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none"
                   initial={{ opacity: 0 }}
                   animate={{
-                    opacity: phase === "awakening" ? [0, 0.85, 0.6] : 0,
+                    opacity: phase === "awakening" ? [0, 0.9, 0.6] : 0,
                     scale: phase === "awakening" ? [0.95, 1.08, 1.02] : 1
                   }}
-                  transition={{ duration: 1.8, ease: "easeOut" }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
                   style={{
                     background:
                       "radial-gradient(circle, rgba(255, 235, 170, 0.8) 0%, rgba(223, 190, 125, 0.4) 50%, transparent 75%)",
@@ -442,7 +418,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                     alt="Wedding Invitation Envelope"
                     className="w-full h-full object-cover object-center pointer-events-none"
                   />
-                  {/* Gentle ambient light breathing over the seal in idle state */}
+                  {/* Gentle ambient light breathing over seal in idle state */}
                   <div
                     className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
                     style={{
@@ -454,83 +430,82 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               )}
 
               {/* ========================================================
-                  LAYER 6: BOTANICAL LUMINESCENCE SWEEP & SPARKLES
-                  (Lights up the embossed floral relief vines in awakening)
+                  LAYER 6: BOTANICAL GOLD EMBOSSING & TWINKLING SPARKLES
+                  (Illuminates floral veins without washing out paper)
                   ======================================================== */}
-              {phase === "awakening" && (
+              {(phase === "awakening" || isOpening) && (
                 <motion.div
                   className="absolute inset-0 pointer-events-none"
                   style={{ zIndex: 28 }}
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 0.85] }}
-                  transition={{ duration: 1.8, ease: "easeOut" }}
+                  animate={{
+                    opacity: phase === "awakening" ? [0, 1, 0.85] : [0.85, 0]
+                  }}
+                  transition={{ duration: phase === "awakening" ? 0.7 : 1.2, ease: "easeOut" }}
                 >
-                  {/* High-contrast golden luminescence overlay on relief */}
-                  <div
-                    className="absolute inset-0"
+                  {/* Gold floral relief overlay derived from the single image */}
+                  <img
+                    src={GOLD_RELIEF_IMAGE}
+                    alt="Gold Relief"
+                    className="w-full h-full object-cover object-center pointer-events-none"
                     style={{
-                      mixBlendMode: "color-dodge",
-                      filter: "brightness(2.2) contrast(2.4) saturate(1.8)"
+                      mixBlendMode: "screen",
+                      filter: "drop-shadow(0 0 6px rgba(223,190,125,0.7))"
                     }}
-                  >
-                    <img
-                      src={ENVELOPE_IMAGE}
-                      alt="Floral Glow"
-                      className="w-full h-full object-cover object-center pointer-events-none"
-                    />
-                  </div>
+                  />
 
-                  {/* Twinkling Star Sparkles along the floral vines */}
-                  {FLORAL_SPARKLES.map((sparkle, idx) => (
-                    <motion.div
-                      key={idx}
-                      className="absolute pointer-events-none"
-                      style={{
-                        top: sparkle.top,
-                        left: sparkle.left,
-                        transform: "translate(-50%, -50%)"
-                      }}
-                      initial={{ scale: 0, opacity: 0, rotate: 0 }}
-                      animate={{
-                        scale: [0, 1.25, 0],
-                        opacity: [0, 1, 0],
-                        rotate: [0, 90]
-                      }}
-                      transition={{
-                        duration: 1.2,
-                        delay: sparkle.delay,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="filter drop-shadow-[0_0_8px_rgba(255,235,170,1)]"
+                  {/* Twinkling Star Sparkles along the floral relief */}
+                  {phase === "awakening" &&
+                    FLORAL_SPARKLES.map((sparkle, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="absolute pointer-events-none"
+                        style={{
+                          top: sparkle.top,
+                          left: sparkle.left,
+                          transform: "translate(-50%, -50%)"
+                        }}
+                        initial={{ scale: 0, opacity: 0, rotate: 0 }}
+                        animate={{
+                          scale: [0, 1.25, 0],
+                          opacity: [0, 1, 0],
+                          rotate: [0, 90]
+                        }}
+                        transition={{
+                          duration: 0.9,
+                          delay: sparkle.delay,
+                          ease: "easeInOut"
+                        }}
                       >
-                        <path
-                          d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"
-                          fill="url(#goldSparkleGrad)"
-                        />
-                        <defs>
-                          <radialGradient
-                            id="goldSparkleGrad"
-                            cx="0.5"
-                            cy="0.5"
-                            r="0.5"
-                            fx="0.5"
-                            fy="0.5"
-                          >
-                            <stop offset="0%" stopColor="#ffffff" />
-                            <stop offset="50%" stopColor="#faecd0" />
-                            <stop offset="100%" stopColor="#bc965e" />
-                          </radialGradient>
-                        </defs>
-                      </svg>
-                    </motion.div>
-                  ))}
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="filter drop-shadow-[0_0_8px_rgba(255,235,170,1)]"
+                        >
+                          <path
+                            d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"
+                            fill="url(#goldSparkleGrad)"
+                          />
+                          <defs>
+                            <radialGradient
+                              id="goldSparkleGrad"
+                              cx="0.5"
+                              cy="0.5"
+                              r="0.5"
+                              fx="0.5"
+                              fy="0.5"
+                            >
+                              <stop offset="0%" stopColor="#ffffff" />
+                              <stop offset="50%" stopColor="#faecd0" />
+                              <stop offset="100%" stopColor="#bc965e" />
+                            </radialGradient>
+                          </defs>
+                        </svg>
+                      </motion.div>
+                    ))}
                 </motion.div>
               )}
 
@@ -604,7 +579,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                 className="fixed inset-0 pointer-events-none z-[60]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 0.95, 0] }}
-                transition={{ duration: 1.1, ease: "easeInOut" }}
+                transition={{ duration: 0.9, ease: "easeInOut" }}
                 style={{
                   background:
                     "radial-gradient(circle at 50% 50%, #fffdf7 15%, #f6ecd7 65%, #edd9b5 100%)"
