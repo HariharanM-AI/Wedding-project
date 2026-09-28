@@ -13,7 +13,7 @@ const DESKTOP_RELIEF = "/Intro/invi-gold-relief-desktop.png";
 const DEFAULT_AUDIO_URL = "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4";
 
 // =============================================================================
-// GEOMETRIC FLAP CLIP-PATHS
+// GEOMETRIC FLAP CLIP-PATHS (100% MATHEMATICALLY CONTIGUOUS SEAMS)
 // =============================================================================
 
 // Mobile (Portrait 9:16) Flap Geometries
@@ -29,18 +29,18 @@ const MOBILE_LEFT_FLAP =
 const MOBILE_RIGHT_FLAP =
   "polygon(100.0% 0.0%, 100.0% 100.0%, 100.0% 90.0%, 50.0% 58.5%, 50.0% 48.6%, 100.0% 1.8%)";
 
-// Desktop (Widescreen 16:9) Flap Geometries
+// Desktop (Widescreen 16:9) Flap Geometries (Sharing exact fold seams)
 const DESKTOP_TOP_FLAP =
-  "polygon(0.0% 0.0%, 100.0% 0.0%, 55.3% 52.4%, 55.22% 50.8%, 55.3% 52.4%, 55.22% 54.0%, 54.98% 55.55%, 54.59% 57.0%, 54.06% 58.31%, 53.41% 59.45%, 52.65% 60.37%, 51.81% 61.05%, 50.92% 61.46%, 50.0% 61.6%, 49.08% 61.46%, 48.19% 61.05%, 47.35% 60.37%, 46.59% 59.45%, 45.94% 58.31%, 45.41% 57.0%, 45.02% 55.55%, 44.78% 54.0%, 44.7% 52.4%, 44.78% 50.8%, 0.0% 0.0%)";
+  "polygon(0.0% 0.0%, 100.0% 0.0%, 91.9% 0.0%, 55.3% 52.4%, 55.22% 54.01%, 54.98% 55.58%, 54.59% 57.05%, 54.06% 58.38%, 53.41% 59.52%, 52.65% 60.45%, 51.81% 61.14%, 50.92% 61.56%, 50.0% 61.7%, 49.08% 61.56%, 48.19% 61.14%, 47.35% 60.45%, 46.59% 59.52%, 45.94% 58.38%, 45.41% 57.05%, 45.02% 55.58%, 44.78% 54.01%, 44.7% 52.4%, 8.1% 0.0%, 0.0% 0.0%)";
 
 const DESKTOP_BOTTOM_FLAP =
-  "polygon(0.0% 100.0%, 100.0% 100.0%, 50.0% 61.6%, 0.0% 100.0%)";
+  "polygon(0.0% 100.0%, 100.0% 100.0%, 93.3% 100.0%, 55.3% 52.4%, 44.7% 52.4%, 5.8% 100.0%, 0.0% 100.0%)";
 
 const DESKTOP_LEFT_FLAP =
-  "polygon(0.0% 0.0%, 0.0% 100.0%, 50.0% 52.4%, 0.0% 0.0%)";
+  "polygon(0.0% 0.0%, 8.1% 0.0%, 44.7% 52.4%, 5.8% 100.0%, 0.0% 100.0%)";
 
 const DESKTOP_RIGHT_FLAP =
-  "polygon(100.0% 0.0%, 100.0% 100.0%, 50.0% 52.4%, 100.0% 0.0%)";
+  "polygon(100.0% 0.0%, 91.9% 0.0%, 55.3% 52.4%, 93.3% 100.0%, 100.0% 100.0%)";
 
 // Delicate diamond star sparkles along floral relief coordinates
 const MOBILE_SPARKLES = [
@@ -126,15 +126,15 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
   }, [isMuted]);
 
   // Exact Choreography:
-  // 1. Tapping starts audio + Phase: "circling" (0ms - 1100ms)
+  // 1. User Taps -> Music starts + Phase: "circling" (0ms - 1100ms)
   //    Golden light circles the perimeter of the wax seal!
   // 2. Phase: "flowing" (1100ms - 2700ms)
-  //    Golden luminescence flows outward towards EVERY petal on all 4 sides!
-  // 3. Phase: "opening" (2700ms - 5100ms)
+  //    Golden luminescence flows smoothly outward towards EVERY petal on all 4 sides!
+  // 3. Phase: "opening" (2700ms - 5200ms)
   //    Flaps glide smoothly open with Framer Motion, cavity reveals invitation card!
-  // 4. Phase: "revealing" (5100ms - 6100ms)
+  // 4. Phase: "revealing" (5200ms - 6200ms)
   //    Warm champagne bloom fills screen and gently dissolves!
-  // 5. Phase: "complete" (6100ms) -> Unmounts overlay!
+  // 5. Phase: "complete" (6200ms) -> Unmounts overlay!
   function handleStartOpening() {
     if (hasTriggeredRef.current || phase !== "idle") return;
     hasTriggeredRef.current = true;
@@ -166,12 +166,12 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     // Step 4: Soft champagne fill and gentle dissolve
     setTimeout(() => {
       setPhase("revealing");
-    }, 5100);
+    }, 5200);
 
     // Step 5: Unmount overlay completely
     setTimeout(() => {
       setPhase("complete");
-    }, 6100);
+    }, 6200);
   }
 
   function toggleAudioPlayback() {
@@ -480,25 +480,28 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               </motion.div>
 
               {/* ========================================================
-                  LAYER 5: BASE INTACT IMAGE (ACTIVE DURING IDLE)
-                  (Ensures 100% pristine seam-free rendering before tap)
+                  LAYER 5: BASE INTACT IMAGE (ACTIVE BEFORE FLAPS MOVE)
+                  (Ensures 100% pristine seamless rendering during idle,
+                   circling seal glow, and outward floral flow)
                   ======================================================== */}
-              {phase === "idle" && (
+              {!isFlapOpening && (
                 <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
                   <img
                     src={envelopeSrc}
                     alt="Wedding Invitation Envelope"
                     className="w-full h-full object-cover object-center pointer-events-none"
                   />
-                  {/* Subtle ambient light breathing over the seal in idle state */}
-                  <div
-                    className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
-                    style={{
-                      top: `${sealY}%`,
-                      background:
-                        "radial-gradient(circle, rgba(235, 205, 140, 0.35) 0%, rgba(223, 190, 125, 0.12) 50%, transparent 75%)"
-                    }}
-                  />
+                  {/* Subtle ambient light breathing over seal in idle state */}
+                  {phase === "idle" && (
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
+                      style={{
+                        top: `${sealY}%`,
+                        background:
+                          "radial-gradient(circle, rgba(235, 205, 140, 0.35) 0%, rgba(223, 190, 125, 0.12) 50%, transparent 75%)"
+                      }}
+                    />
+                  )}
                 </div>
               )}
 
