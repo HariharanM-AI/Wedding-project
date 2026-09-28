@@ -5,50 +5,77 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { WeddingData } from "@/lib/types/wedding";
 
-// Single Master Image provided by the user
-const ENVELOPE_IMAGE = "/Intro/Invi intro.png";
-const GOLD_RELIEF_IMAGE = "/Intro/invi-gold-relief.png";
+// Assets provided by the user
+const MOBILE_ENVELOPE = "/Intro/Invi intro.png";
+const DESKTOP_ENVELOPE = "/Intro/wedding-lap-screen.png";
+const MOBILE_RELIEF = "/Intro/invi-gold-relief-mobile.png";
+const DESKTOP_RELIEF = "/Intro/invi-gold-relief-desktop.png";
 const DEFAULT_AUDIO_URL = "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4";
 
-// Exact geometric flap clip-paths derived from Invi intro.png (914x1720)
-// Top flap seamlessly incorporates the top triangular fold and the circular wax seal at its apex
-const TOP_FLAP_CLIP_PATH =
+// =============================================================================
+// GEOMETRIC FLAP CLIP-PATHS
+// =============================================================================
+
+// Mobile (Portrait 9:16) Flap Geometries
+const MOBILE_TOP_FLAP =
   "polygon(0.0% 0.0%, 100.0% 0.0%, 100.0% 1.8%, 66.0% 42.8%, 65.22% 45.66%, 65.95% 47.11%, 66.2% 48.6%, 65.95% 50.09%, 65.22% 51.54%, 64.03% 52.9%, 62.41% 54.13%, 60.41% 55.19%, 58.1% 56.05%, 55.54% 56.68%, 52.81% 57.07%, 50.0% 57.2%, 47.19% 57.07%, 44.46% 56.68%, 41.9% 56.05%, 39.59% 55.19%, 37.59% 54.13%, 35.97% 52.9%, 34.78% 51.54%, 34.05% 50.09%, 33.8% 48.6%, 34.05% 47.11%, 34.78% 45.66%, 34.0% 42.8%, 0.0% 1.8%)";
 
-// Bottom flap triangular fold pointing up towards the wax seal
-const BOTTOM_FLAP_CLIP_PATH =
+const MOBILE_BOTTOM_FLAP =
   "polygon(0.0% 100.0%, 100.0% 100.0%, 100.0% 90.0%, 50.0% 58.5%, 0.0% 90.0%)";
 
-// Left side panel fold
-const LEFT_FLAP_CLIP_PATH =
+const MOBILE_LEFT_FLAP =
   "polygon(0.0% 0.0%, 0.0% 100.0%, 0.0% 90.0%, 50.0% 58.5%, 50.0% 48.6%, 0.0% 1.8%)";
 
-// Right side panel fold
-const RIGHT_FLAP_CLIP_PATH =
+const MOBILE_RIGHT_FLAP =
   "polygon(100.0% 0.0%, 100.0% 100.0%, 100.0% 90.0%, 50.0% 58.5%, 50.0% 48.6%, 100.0% 1.8%)";
 
-// Delicate star sparkles on floral relief coordinates (matching the video's floral glints)
-const FLORAL_SPARKLES = [
-  { top: "14.5%", left: "50%", delay: 0.1 },
-  { top: "17%", left: "34%", delay: 0.25 },
-  { top: "17%", left: "66%", delay: 0.35 },
-  { top: "40%", left: "19%", delay: 0.45 },
-  { top: "53%", left: "12%", delay: 0.6 },
-  { top: "40%", left: "81%", delay: 0.5 },
-  { top: "53%", left: "88%", delay: 0.65 },
-  { top: "83.5%", left: "50%", delay: 0.55 }
+// Desktop (Widescreen 16:9) Flap Geometries
+const DESKTOP_TOP_FLAP =
+  "polygon(0.0% 0.0%, 100.0% 0.0%, 55.3% 52.4%, 55.22% 50.8%, 55.3% 52.4%, 55.22% 54.0%, 54.98% 55.55%, 54.59% 57.0%, 54.06% 58.31%, 53.41% 59.45%, 52.65% 60.37%, 51.81% 61.05%, 50.92% 61.46%, 50.0% 61.6%, 49.08% 61.46%, 48.19% 61.05%, 47.35% 60.37%, 46.59% 59.45%, 45.94% 58.31%, 45.41% 57.0%, 45.02% 55.55%, 44.78% 54.0%, 44.7% 52.4%, 44.78% 50.8%, 0.0% 0.0%)";
+
+const DESKTOP_BOTTOM_FLAP =
+  "polygon(0.0% 100.0%, 100.0% 100.0%, 50.0% 61.6%, 0.0% 100.0%)";
+
+const DESKTOP_LEFT_FLAP =
+  "polygon(0.0% 0.0%, 0.0% 100.0%, 50.0% 52.4%, 0.0% 0.0%)";
+
+const DESKTOP_RIGHT_FLAP =
+  "polygon(100.0% 0.0%, 100.0% 100.0%, 50.0% 52.4%, 100.0% 0.0%)";
+
+// Delicate diamond star sparkles along floral relief coordinates
+const MOBILE_SPARKLES = [
+  { top: "14.5%", left: "50%", delay: 0.15 },
+  { top: "17%", left: "34%", delay: 0.3 },
+  { top: "17%", left: "66%", delay: 0.4 },
+  { top: "40%", left: "19%", delay: 0.5 },
+  { top: "53%", left: "12%", delay: 0.65 },
+  { top: "40%", left: "81%", delay: 0.55 },
+  { top: "53%", left: "88%", delay: 0.7 },
+  { top: "83.5%", left: "50%", delay: 0.6 }
+];
+
+const DESKTOP_SPARKLES = [
+  { top: "16%", left: "50%", delay: 0.15 },
+  { top: "19%", left: "41%", delay: 0.3 },
+  { top: "19%", left: "59%", delay: 0.4 },
+  { top: "35%", left: "11%", delay: 0.5 },
+  { top: "55%", left: "9%", delay: 0.65 },
+  { top: "35%", left: "89%", delay: 0.55 },
+  { top: "55%", left: "91%", delay: 0.7 },
+  { top: "83%", left: "50%", delay: 0.6 }
 ];
 
 interface IntroEnvelopeProps {
   data: WeddingData;
 }
 
-type IntroPhase = "idle" | "awakening" | "opening" | "revealing" | "complete";
+type IntroPhase = "idle" | "circling" | "flowing" | "opening" | "revealing" | "complete";
 
 export function IntroEnvelope({ data }: IntroEnvelopeProps) {
   const [phase, setPhase] = useState<IntroPhase>("idle");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -56,18 +83,31 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
   const audioSrc = data.audioUrl?.trim() || DEFAULT_AUDIO_URL;
 
-  // Pre-load the envelope master images for instantaneous 60fps rendering
+  // Responsive screen detection: Window/Laptop Screen (16:9) vs Mobile (9:16)
   useEffect(() => {
-    const img1 = new Image();
-    img1.src = ENVELOPE_IMAGE;
-    img1.onload = () => setImageLoaded(true);
-
-    const img2 = new Image();
-    img2.src = GOLD_RELIEF_IMAGE;
-    img2.onload = () => {};
+    function handleResize() {
+      setIsDesktop(window.innerWidth >= 820 && window.innerWidth > window.innerHeight);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Lock body scroll while intro overlay is active
+  // Pre-load assets
+  useEffect(() => {
+    const assets = [MOBILE_ENVELOPE, DESKTOP_ENVELOPE, MOBILE_RELIEF, DESKTOP_RELIEF];
+    let loaded = 0;
+    assets.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        loaded++;
+        if (loaded >= 2) setImageLoaded(true);
+      };
+    });
+  }, []);
+
+  // Lock body scroll while overlay is active
   useEffect(() => {
     if (phase !== "complete") {
       const originalOverflow = document.body.style.overflow;
@@ -85,11 +125,21 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     }
   }, [isMuted]);
 
+  // Exact Choreography:
+  // 1. Tapping starts audio + Phase: "circling" (0ms - 1100ms)
+  //    Golden light circles the perimeter of the wax seal!
+  // 2. Phase: "flowing" (1100ms - 2700ms)
+  //    Golden luminescence flows outward towards EVERY petal on all 4 sides!
+  // 3. Phase: "opening" (2700ms - 5100ms)
+  //    Flaps glide smoothly open with Framer Motion, cavity reveals invitation card!
+  // 4. Phase: "revealing" (5100ms - 6100ms)
+  //    Warm champagne bloom fills screen and gently dissolves!
+  // 5. Phase: "complete" (6100ms) -> Unmounts overlay!
   function handleStartOpening() {
     if (hasTriggeredRef.current || phase !== "idle") return;
     hasTriggeredRef.current = true;
 
-    // Start background wedding music immediately on user tap
+    // Start background music immediately on user tap
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current
@@ -100,23 +150,28 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
         });
     }
 
-    // Step 1: Awakening (0ms - 700ms) -> Wax seal glows with golden sheen, luminescence washes over vines
-    setPhase("awakening");
+    // Step 1: Glow circles the seal
+    setPhase("circling");
 
-    // Step 2: Opening (700ms - 3600ms) -> Flaps smoothly glide open with Framer Motion, light cavity expands
+    // Step 2: Glow flows smoothly towards every petal on all sides
+    setTimeout(() => {
+      setPhase("flowing");
+    }, 1100);
+
+    // Step 3: Flaps glide open revealing the wedding invitation
     setTimeout(() => {
       setPhase("opening");
-    }, 700);
+    }, 2700);
 
-    // Step 3: Revealing (3600ms - 4400ms) -> Soft champagne light floods screen and dissolves
+    // Step 4: Soft champagne fill and gentle dissolve
     setTimeout(() => {
       setPhase("revealing");
-    }, 3600);
+    }, 5100);
 
-    // Step 4: Complete (4400ms) -> Overlay unmounts completely, full website interactive
+    // Step 5: Unmount overlay completely
     setTimeout(() => {
       setPhase("complete");
-    }, 4400);
+    }, 6100);
   }
 
   function toggleAudioPlayback() {
@@ -132,7 +187,19 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     }
   }
 
-  const isOpening = phase === "opening" || phase === "revealing";
+  // Active asset and geometry selections based on viewport
+  const envelopeSrc = isDesktop ? DESKTOP_ENVELOPE : MOBILE_ENVELOPE;
+  const reliefSrc = isDesktop ? DESKTOP_RELIEF : MOBILE_RELIEF;
+  const sealY = isDesktop ? 52.4 : 48.6;
+  const tapPillTop = isDesktop ? "59.2%" : "55.2%";
+  const sparkles = isDesktop ? DESKTOP_SPARKLES : MOBILE_SPARKLES;
+
+  const topClip = isDesktop ? DESKTOP_TOP_FLAP : MOBILE_TOP_FLAP;
+  const bottomClip = isDesktop ? DESKTOP_BOTTOM_FLAP : MOBILE_BOTTOM_FLAP;
+  const leftClip = isDesktop ? DESKTOP_LEFT_FLAP : MOBILE_LEFT_FLAP;
+  const rightClip = isDesktop ? DESKTOP_RIGHT_FLAP : MOBILE_RIGHT_FLAP;
+
+  const isFlapOpening = phase === "opening" || phase === "revealing";
 
   return (
     <>
@@ -196,12 +263,12 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
             initial={{ opacity: 1 }}
             animate={{ opacity: phase === "revealing" ? 0 : 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ duration: 0.85, ease: "easeInOut" }}
             onClick={handleStartOpening}
             className="fixed inset-0 z-50 flex items-center justify-center select-none overflow-hidden cursor-pointer"
             style={{
               background:
-                "radial-gradient(ellipse at center, #1a0f0b 0%, #110704 55%, #080302 100%)"
+                "radial-gradient(ellipse at center, #180e0a 0%, #100603 55%, #060201 100%)"
             }}
             role="button"
             tabIndex={0}
@@ -221,28 +288,32 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               <div className="ambient-mote mote-4" />
             </div>
 
-            {/* Master Envelope Canvas Container */}
+            {/* Master Envelope Canvas Container (Responsive: Widescreen on desktop, Portrait on mobile) */}
             <motion.div
-              className="relative w-full h-full max-w-[460px] max-h-[860px] sm:h-[92vh] sm:rounded-2xl overflow-hidden shadow-2xl"
+              className={`relative overflow-hidden shadow-2xl transition-all duration-700 ${
+                isDesktop
+                  ? "w-[92vw] max-w-[1100px] h-[52vw] max-h-[620px] aspect-[16/9] rounded-2xl"
+                  : "w-full h-full max-w-[460px] max-h-[860px] sm:h-[92vh] sm:rounded-2xl"
+              }`}
               animate={{
-                scale: isOpening ? 1.04 : phase === "awakening" ? 1.015 : 1
+                scale: isFlapOpening ? 1.03 : phase === "flowing" ? 1.015 : 1
               }}
               transition={{ duration: 2.5, ease: "easeOut" }}
               style={{
-                boxShadow: isOpening
-                  ? "0 0 80px rgba(223, 190, 125, 0.6), 0 30px 80px rgba(0,0,0,0.9)"
+                boxShadow: isFlapOpening
+                  ? "0 0 90px rgba(223, 190, 125, 0.65), 0 30px 80px rgba(0,0,0,0.9)"
                   : "0 20px 60px rgba(0, 0, 0, 0.85)"
               }}
             >
               {/* ========================================================
-                  LAYER 0: INTERIOR CAVITY & INVITATION REVEAL PEEK
+                  LAYER 0: INTERIOR CAVITY & WEDDING CARD PEEK
                   (Situated underneath the parting flaps)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none overflow-hidden"
                 style={{ zIndex: 1 }}
                 animate={{
-                  scale: isOpening ? [0.93, 1.02] : 0.93
+                  scale: isFlapOpening ? [0.93, 1.02] : 0.93
                 }}
                 transition={{ duration: 2.8, ease: [0.25, 1, 0.5, 1] }}
               >
@@ -251,7 +322,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                   className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center select-none"
                   style={{
                     background:
-                      "radial-gradient(ellipse at 50% 49%, #ffffff 0%, #fdf8ee 40%, #f5e9d3 75%, #ebd4ae 100%)"
+                      "radial-gradient(ellipse at 50% 50%, #ffffff 0%, #fdf8ee 40%, #f5e9d3 75%, #ebd4ae 100%)"
                   }}
                 >
                   {/* Subtle royal framing lines */}
@@ -263,14 +334,14 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(ellipse at 50% 49%, rgba(255,255,255,1) 0%, rgba(255,245,215,0.95) 25%, rgba(223,190,125,0.45) 60%, transparent 85%)",
+                        "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,1) 0%, rgba(255,245,215,0.95) 25%, rgba(223,190,125,0.45) 60%, transparent 85%)",
                       filter: "blur(12px)"
                     }}
                   />
 
                   {/* Horizontal Flare Beams emanating from central opening */}
                   <div
-                    className="absolute left-0 right-0 top-[49%] -translate-y-1/2 h-56 pointer-events-none"
+                    className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-56 pointer-events-none"
                     style={{
                       background:
                         "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(240,215,145,0.7) 35%, transparent 75%)",
@@ -279,7 +350,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                   />
 
                   {/* Couple's Monogram & Wedding Announcement inside Opening */}
-                  <div className="relative z-10 flex flex-col items-center max-w-[280px]">
+                  <div className="relative z-10 flex flex-col items-center max-w-[320px]">
                     <span className="font-serif text-[10px] sm:text-[11px] tracking-[0.32em] uppercase text-[#8c6b3c] mb-2 font-medium">
                       With the blessings of our families
                     </span>
@@ -305,21 +376,21 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
               {/* ========================================================
                   LAYER 1: LEFT FLAP
-                  (Cut from single image using CSS clip-path)
+                  (Cut from image using exact CSS clip-path)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  clipPath: LEFT_FLAP_CLIP_PATH,
+                  clipPath: leftClip,
                   zIndex: 10
                 }}
                 animate={{
-                  x: isOpening ? "-4%" : "0%"
+                  x: isFlapOpening ? "-4%" : "0%"
                 }}
                 transition={{ duration: 2.6, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
-                  src={ENVELOPE_IMAGE}
+                  src={envelopeSrc}
                   alt="Left envelope flap"
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
@@ -327,21 +398,21 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
               {/* ========================================================
                   LAYER 2: RIGHT FLAP
-                  (Cut from single image using CSS clip-path)
+                  (Cut from image using exact CSS clip-path)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  clipPath: RIGHT_FLAP_CLIP_PATH,
+                  clipPath: rightClip,
                   zIndex: 10
                 }}
                 animate={{
-                  x: isOpening ? "4%" : "0%"
+                  x: isFlapOpening ? "4%" : "0%"
                 }}
                 transition={{ duration: 2.6, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
-                  src={ENVELOPE_IMAGE}
+                  src={envelopeSrc}
                   alt="Right envelope flap"
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
@@ -349,21 +420,21 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
 
               {/* ========================================================
                   LAYER 3: BOTTOM FLAP
-                  (Glides downward with Framer Motion, casts upward shadow)
+                  (Glides downward with Framer Motion)
                   ======================================================== */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  clipPath: BOTTOM_FLAP_CLIP_PATH,
+                  clipPath: bottomClip,
                   zIndex: 15
                 }}
                 animate={{
-                  y: isOpening ? "42%" : "0%"
+                  y: isFlapOpening ? "44%" : "0%"
                 }}
                 transition={{ duration: 2.7, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
-                  src={ENVELOPE_IMAGE}
+                  src={envelopeSrc}
                   alt="Bottom envelope flap"
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
@@ -376,52 +447,54 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  clipPath: TOP_FLAP_CLIP_PATH,
+                  clipPath: topClip,
                   zIndex: 20
                 }}
                 animate={{
-                  y: isOpening ? "-42%" : "0%"
+                  y: isFlapOpening ? "-44%" : "0%"
                 }}
                 transition={{ duration: 2.7, ease: [0.25, 1, 0.35, 1] }}
               >
                 <img
-                  src={ENVELOPE_IMAGE}
+                  src={envelopeSrc}
                   alt="Top envelope flap with seal"
                   className="w-full h-full object-cover object-center pointer-events-none"
                 />
 
-                {/* Wax seal golden sheen highlight during awakening */}
+                {/* Wax seal golden sheen highlight during circling & flowing */}
                 <motion.div
-                  className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{
-                    opacity: phase === "awakening" ? [0, 0.9, 0.6] : 0,
-                    scale: phase === "awakening" ? [0.95, 1.08, 1.02] : 1
-                  }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
+                  className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none"
                   style={{
+                    top: `${sealY}%`,
                     background:
-                      "radial-gradient(circle, rgba(255, 235, 170, 0.8) 0%, rgba(223, 190, 125, 0.4) 50%, transparent 75%)",
+                      "radial-gradient(circle, rgba(255, 235, 170, 0.85) 0%, rgba(223, 190, 125, 0.45) 50%, transparent 75%)",
                     mixBlendMode: "color-dodge"
                   }}
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: phase === "circling" || phase === "flowing" ? [0, 0.95, 0.75] : 0,
+                    scale: phase === "circling" || phase === "flowing" ? [0.95, 1.08, 1.03] : 1
+                  }}
+                  transition={{ duration: 1.4, ease: "easeOut" }}
                 />
               </motion.div>
 
               {/* ========================================================
                   LAYER 5: BASE INTACT IMAGE (ACTIVE DURING IDLE)
-                  (Ensures 100% seam-free pristine rendering before tap)
+                  (Ensures 100% pristine seam-free rendering before tap)
                   ======================================================== */}
               {phase === "idle" && (
                 <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
                   <img
-                    src={ENVELOPE_IMAGE}
+                    src={envelopeSrc}
                     alt="Wedding Invitation Envelope"
                     className="w-full h-full object-cover object-center pointer-events-none"
                   />
-                  {/* Gentle ambient light breathing over seal in idle state */}
+                  {/* Subtle ambient light breathing over the seal in idle state */}
                   <div
-                    className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
+                    className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none animate-seal-breathe"
                     style={{
+                      top: `${sealY}%`,
                       background:
                         "radial-gradient(circle, rgba(235, 205, 140, 0.35) 0%, rgba(223, 190, 125, 0.12) 50%, transparent 75%)"
                     }}
@@ -430,87 +503,180 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
               )}
 
               {/* ========================================================
-                  LAYER 6: BOTANICAL GOLD EMBOSSING & TWINKLING SPARKLES
-                  (Illuminates floral veins without washing out paper)
+                  LAYER 6: "GLOW CIRCLES THE SEAL" (PHASE: CIRCLING)
+                  (Animated golden light trail racing around the wax seal)
                   ======================================================== */}
-              {(phase === "awakening" || isOpening) && (
+              {(phase === "circling" || phase === "flowing") && (
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
+                  style={{
+                    top: `${sealY}%`,
+                    width: isDesktop ? "160px" : "150px",
+                    height: isDesktop ? "160px" : "150px"
+                  }}
+                >
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 160 160">
+                    <defs>
+                      <linearGradient id="circlingGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                        <stop offset="25%" stopColor="#ffe6a3" stopOpacity="0.95" />
+                        <stop offset="60%" stopColor="#d4af37" stopOpacity="0.75" />
+                        <stop offset="100%" stopColor="#8c6b3c" stopOpacity="0" />
+                      </linearGradient>
+                      <filter id="sealGlowBlur" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="3.5" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+
+                    {/* Animated circling light ring */}
+                    <motion.circle
+                      cx="80"
+                      cy="80"
+                      r="58"
+                      fill="none"
+                      stroke="url(#circlingGoldGrad)"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      filter="url(#sealGlowBlur)"
+                      initial={{ pathLength: 0, rotate: -90, opacity: 0 }}
+                      animate={{
+                        pathLength: [0, 1],
+                        rotate: [-90, 270],
+                        opacity: [0, 1, 1, 0.7]
+                      }}
+                      transition={{ duration: 1.1, ease: "easeInOut" }}
+                    />
+
+                    {/* Inner glowing pulse ring */}
+                    <motion.circle
+                      cx="80"
+                      cy="80"
+                      r="52"
+                      fill="none"
+                      stroke="rgba(255, 235, 170, 0.6)"
+                      strokeWidth="2"
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{
+                        scale: [0.95, 1.05, 1.0],
+                        opacity: [0, 0.8, 0.5]
+                      }}
+                      transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+                    />
+                  </svg>
+                </div>
+              )}
+
+              {/* ========================================================
+                  LAYER 7: "GLOW FLOWS SMOOTHLY TOWARDS EVERY PETAL"
+                  (Progressive radial wave streaming outward along all vines)
+                  ======================================================== */}
+              {(phase === "flowing" || phase === "opening") && (
                 <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ zIndex: 28 }}
+                  className="absolute inset-0 pointer-events-none z-28"
                   initial={{ opacity: 0 }}
                   animate={{
-                    opacity: phase === "awakening" ? [0, 1, 0.85] : [0.85, 0]
+                    opacity: phase === "flowing" ? [0, 1, 0.9] : [0.9, 0]
                   }}
-                  transition={{ duration: phase === "awakening" ? 0.7 : 1.2, ease: "easeOut" }}
+                  transition={{ duration: phase === "flowing" ? 0.9 : 1.4, ease: "easeOut" }}
                 >
-                  {/* Gold floral relief overlay derived from the single image */}
-                  <img
-                    src={GOLD_RELIEF_IMAGE}
-                    alt="Gold Relief"
-                    className="w-full h-full object-cover object-center pointer-events-none"
-                    style={{
-                      mixBlendMode: "screen",
-                      filter: "drop-shadow(0 0 6px rgba(223,190,125,0.7))"
+                  {/* Expanding radial wave revealing the gold relief toward all petals */}
+                  <motion.div
+                    className="w-full h-full"
+                    initial={{
+                      maskImage: `radial-gradient(circle at 50% ${sealY}%, black 0%, black 10%, transparent 18%)`,
+                      WebkitMaskImage: `radial-gradient(circle at 50% ${sealY}%, black 0%, black 10%, transparent 18%)`
                     }}
+                    animate={{
+                      maskImage: `radial-gradient(circle at 50% ${sealY}%, black 0%, black 90%, transparent 100%)`,
+                      WebkitMaskImage: `radial-gradient(circle at 50% ${sealY}%, black 0%, black 90%, transparent 100%)`
+                    }}
+                    transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }}
+                  >
+                    <img
+                      src={reliefSrc}
+                      alt="Gold Floral Relief"
+                      className="w-full h-full object-cover object-center pointer-events-none"
+                      style={{
+                        mixBlendMode: "screen",
+                        filter: "drop-shadow(0 0 8px rgba(223,190,125,0.75))"
+                      }}
+                    />
+                  </motion.div>
+
+                  {/* Traveling light wavefront pulse expanding from seal */}
+                  <motion.div
+                    className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+                    style={{
+                      top: `${sealY}%`,
+                      border: "2px solid rgba(255, 235, 170, 0.8)",
+                      boxShadow: "0 0 25px rgba(223, 190, 125, 0.7), inset 0 0 20px rgba(255, 240, 190, 0.4)"
+                    }}
+                    initial={{ width: 120, height: 120, opacity: 0.9 }}
+                    animate={{
+                      width: isDesktop ? 1200 : 700,
+                      height: isDesktop ? 1200 : 700,
+                      opacity: [0.9, 0.6, 0]
+                    }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
                   />
 
-                  {/* Twinkling Star Sparkles along the floral relief */}
-                  {phase === "awakening" &&
-                    FLORAL_SPARKLES.map((sparkle, idx) => (
-                      <motion.div
-                        key={idx}
-                        className="absolute pointer-events-none"
-                        style={{
-                          top: sparkle.top,
-                          left: sparkle.left,
-                          transform: "translate(-50%, -50%)"
-                        }}
-                        initial={{ scale: 0, opacity: 0, rotate: 0 }}
-                        animate={{
-                          scale: [0, 1.25, 0],
-                          opacity: [0, 1, 0],
-                          rotate: [0, 90]
-                        }}
-                        transition={{
-                          duration: 0.9,
-                          delay: sparkle.delay,
-                          ease: "easeInOut"
-                        }}
+                  {/* Twinkling Star Sparkles along every floral petal cluster */}
+                  {sparkles.map((sparkle, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="absolute pointer-events-none"
+                      style={{
+                        top: sparkle.top,
+                        left: sparkle.left,
+                        transform: "translate(-50%, -50%)"
+                      }}
+                      initial={{ scale: 0, opacity: 0, rotate: 0 }}
+                      animate={{
+                        scale: [0, 1.3, 0],
+                        opacity: [0, 1, 0],
+                        rotate: [0, 90]
+                      }}
+                      transition={{
+                        duration: 1.0,
+                        delay: sparkle.delay,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="filter drop-shadow-[0_0_8px_rgba(255,235,170,1)]"
                       >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="filter drop-shadow-[0_0_8px_rgba(255,235,170,1)]"
-                        >
-                          <path
-                            d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"
-                            fill="url(#goldSparkleGrad)"
-                          />
-                          <defs>
-                            <radialGradient
-                              id="goldSparkleGrad"
-                              cx="0.5"
-                              cy="0.5"
-                              r="0.5"
-                              fx="0.5"
-                              fy="0.5"
-                            >
-                              <stop offset="0%" stopColor="#ffffff" />
-                              <stop offset="50%" stopColor="#faecd0" />
-                              <stop offset="100%" stopColor="#bc965e" />
-                            </radialGradient>
-                          </defs>
-                        </svg>
-                      </motion.div>
-                    ))}
+                        <path
+                          d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"
+                          fill="url(#goldSparkleGrad2)"
+                        />
+                        <defs>
+                          <radialGradient
+                            id="goldSparkleGrad2"
+                            cx="0.5"
+                            cy="0.5"
+                            r="0.5"
+                            fx="0.5"
+                            fy="0.5"
+                          >
+                            <stop offset="0%" stopColor="#ffffff" />
+                            <stop offset="45%" stopColor="#faecd0" />
+                            <stop offset="100%" stopColor="#bc965e" />
+                          </radialGradient>
+                        </defs>
+                      </svg>
+                    </motion.div>
+                  ))}
                 </motion.div>
               )}
 
               {/* ========================================================
-                  LAYER 7: "TAP TO OPEN" BADGE & HOTSPOT (IDLE STATE)
+                  LAYER 8: "TAP TO OPEN" BADGE & HOTSPOT (IDLE STATE)
                   ======================================================== */}
               {phase === "idle" && (
                 <>
@@ -521,14 +687,15 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                       e.stopPropagation();
                       handleStartOpening();
                     }}
-                    className="absolute left-1/2 top-[48.6%] -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full cursor-pointer z-30 focus:outline-none focus:ring-0"
+                    className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full cursor-pointer z-30 focus:outline-none focus:ring-0"
+                    style={{ top: `${sealY}%` }}
                     aria-label="Tap central seal to open invitation"
                   />
 
-                  {/* "TAP TO OPEN" Indicator with upward arrow pointing at the seal */}
+                  {/* "TAP TO OPEN" Badge with upward arrow pointing at the seal */}
                   <div
                     className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-30 select-none transition-all duration-400"
-                    style={{ top: "54.8%" }}
+                    style={{ top: tapPillTop }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleStartOpening();
@@ -571,7 +738,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
             </motion.div>
 
             {/* ========================================================
-                LAYER 8: SOFT CHAMPAGNE FILL REVEAL
+                LAYER 9: SOFT CHAMPAGNE FILL REVEAL
                 (Expands gently to fill screen and dissolve into website)
                 ======================================================== */}
             {phase === "revealing" && (
@@ -579,7 +746,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                 className="fixed inset-0 pointer-events-none z-[60]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 0.95, 0] }}
-                transition={{ duration: 0.9, ease: "easeInOut" }}
+                transition={{ duration: 1.0, ease: "easeInOut" }}
                 style={{
                   background:
                     "radial-gradient(circle at 50% 50%, #fffdf7 15%, #f6ecd7 65%, #edd9b5 100%)"
