@@ -601,9 +601,9 @@
 
 @media (max-width: 760px) {
   .film-audio-toggle {
-    bottom: max(26px, calc(env(safe-area-inset-bottom, 0px) + 20px)) !important;
+    bottom: var(--mobile-audio-btn-bottom, max(96px, calc(env(safe-area-inset-bottom, 0px) + 88px))) !important;
     right: max(16px, calc(env(safe-area-inset-right, 0px) + 14px)) !important;
-    padding: 7px 14px !important;
+    padding: 7px 15px !important;
     font-size: 11px !important;
     gap: 7px !important;
   }
@@ -611,9 +611,9 @@
 
 @media (max-width: 360px) {
   .film-audio-toggle {
-    bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px)) !important;
+    bottom: var(--mobile-audio-btn-bottom, max(88px, calc(env(safe-area-inset-bottom, 0px) + 80px))) !important;
     right: max(12px, calc(env(safe-area-inset-right, 0px) + 10px)) !important;
-    padding: 6px 12px !important;
+    padding: 6px 13px !important;
     font-size: 10px !important;
   }
 }
@@ -742,7 +742,7 @@
 /* Distinct mobile styling tailored for smartphone screens */
 @media (max-width: 760px) {
   .film-audio-hint {
-    bottom: max(78px, calc(env(safe-area-inset-bottom, 0px) + 72px)) !important;
+    bottom: var(--mobile-audio-hint-bottom, max(148px, calc(env(safe-area-inset-bottom, 0px) + 140px))) !important;
     right: max(16px, calc(env(safe-area-inset-right, 0px) + 14px)) !important;
     padding: 8px 16px !important;
     font-size: 12px !important;
@@ -770,7 +770,7 @@
 
 @media (max-width: 360px) {
   .film-audio-hint {
-    bottom: max(70px, calc(env(safe-area-inset-bottom, 0px) + 64px)) !important;
+    bottom: var(--mobile-audio-hint-bottom, max(138px, calc(env(safe-area-inset-bottom, 0px) + 130px))) !important;
     right: max(12px, calc(env(safe-area-inset-right, 0px) + 10px)) !important;
     font-size: 11px !important;
     padding: 7px 14px !important;

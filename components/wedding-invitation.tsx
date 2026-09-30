@@ -835,6 +835,49 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
     setShowAudioHint(false);
   };
 
+  // Dynamically position audio controls comfortably above mobile browser toolbars on initial load & resize
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const computeMobileAudioOffset = () => {
+      if (window.innerWidth > 760) return;
+
+      const vv = window.visualViewport;
+      let toolbarGap = 0;
+
+      if (vv) {
+        // Distance between bottom of layout viewport and bottom of visible area
+        const visualBottom = vv.offsetTop + vv.height;
+        toolbarGap = Math.max(0, window.innerHeight - visualBottom);
+      }
+
+      // Ensure button sits at least 96px from bottom, or toolbarGap + 20px
+      const buttonBottom = Math.max(96, toolbarGap + 20);
+      const hintBottom = buttonBottom + 52;
+
+      document.documentElement.style.setProperty("--mobile-audio-btn-bottom", `${buttonBottom}px`);
+      document.documentElement.style.setProperty("--mobile-audio-hint-bottom", `${hintBottom}px`);
+    };
+
+    computeMobileAudioOffset();
+
+    window.addEventListener("resize", computeMobileAudioOffset);
+    window.addEventListener("orientationchange", computeMobileAudioOffset);
+    if (typeof window !== "undefined" && window.visualViewport) {
+      window.visualViewport.addEventListener("resize", computeMobileAudioOffset);
+      window.visualViewport.addEventListener("scroll", computeMobileAudioOffset);
+    }
+
+    return () => {
+      window.removeEventListener("resize", computeMobileAudioOffset);
+      window.removeEventListener("orientationchange", computeMobileAudioOffset);
+      if (typeof window !== "undefined" && window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", computeMobileAudioOffset);
+        window.visualViewport.removeEventListener("scroll", computeMobileAudioOffset);
+      }
+    };
+  }, []);
+
   // 1. Listen for explicit play triggers (e.g. from IntroEnvelope "Tap to open")
   useEffect(() => {
     const handleStartAudio = () => {
