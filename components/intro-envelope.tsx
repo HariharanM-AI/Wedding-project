@@ -39,20 +39,33 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [isGlowVisible, setIsGlowVisible] = useState<boolean>(false);
   const [showIntro, setShowIntro] = useState<boolean>(true);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true; // Default to mobile for SSR: clients open on mobile screens
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceView = urlParams.get("view")?.toLowerCase();
+    if (forceView === "desktop" || forceView === "window") return false;
+    if (forceView === "mobile") return true;
+    return window.innerWidth < 768 || window.innerWidth < window.innerHeight;
+  });
   const [stageW, setStageW] = useState<number>(0);
   const [stageH, setStageH] = useState<number>(0);
 
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const triggeredRef = useRef<boolean>(false);
   const fadeOutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const finishTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* ─── Compute Cover-Fit Dimensions to accurately fill any screen ─── */
+  /* ─── Compute True Cover-Fit Dimensions to accurately fill any mobile or desktop screen with 0 blank space ─── */
   useEffect(() => {
     const measure = () => {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
+      const overlay = overlayRef.current;
+      // Get the true rendered viewport dimensions from overlay client rect or window/visualViewport
+      const vw = overlay?.clientWidth || window.innerWidth || (typeof document !== "undefined" ? document.documentElement.clientWidth : 0);
+      const vh = overlay?.clientHeight || (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+
+      if (!vw || !vh) return;
+
       const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
       const forceView = urlParams?.get("view")?.toLowerCase();
       let mobile: boolean;
@@ -66,24 +79,33 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
       setIsMobile(mobile);
 
       const a = mobile ? ASSETS.mobile : ASSETS.desktop;
-      const imgAr = a.w / a.h;
-      const vpAr = vw / vh;
 
-      if (vpAr > imgAr) {
-        setStageW(vw);
-        setStageH(vw / imgAr);
-      } else {
-        setStageH(vh);
-        setStageW(vh * imgAr);
-      }
+      // Exact mathematical COVER scale:
+      // scale = max(viewportWidth / assetWidth, viewportHeight / assetHeight)
+      // This mathematically guarantees that the stage is AT LEAST as wide as the screen,
+      // and AT LEAST as tall as the screen under ALL conditions.
+      const scale = Math.max(vw / a.w, vh / a.h);
+
+      // Add a 6px subpixel anti-aliasing cushion so subpixel rendering on high-DPI screens never leaves a 1px gap
+      const sw = Math.ceil(a.w * scale) + 6;
+      const sh = Math.ceil(a.h * scale) + 6;
+
+      setStageW(sw);
+      setStageH(sh);
     };
 
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("orientationchange", measure);
+    if (typeof window !== "undefined" && window.visualViewport) {
+      window.visualViewport.addEventListener("resize", measure);
+    }
     return () => {
       window.removeEventListener("resize", measure);
       window.removeEventListener("orientationchange", measure);
+      if (typeof window !== "undefined" && window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", measure);
+      }
     };
   }, []);
 
@@ -95,13 +117,35 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
     img.src = currentAssets.image;
   }, [currentAssets.image]);
 
-  /* ─── Lock body scroll while the intro overlay is active ─── */
+  /* ─── Lock body & document scroll completely while the intro overlay is active ─── */
   useEffect(() => {
     if (phase === "done") return;
-    const prevOverflow = document.body.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyTouchAction = document.body.style.touchAction;
+
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
+    const preventTouch = (e: TouchEvent) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("touchmove", preventTouch, { passive: false });
+
+    // Pin scroll to top
+    if (typeof window !== "undefined" && window.scrollY !== 0) {
+      window.scrollTo(0, 0);
+    }
+
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.touchAction = prevBodyTouchAction;
+      window.removeEventListener("touchmove", preventTouch);
     };
   }, [phase]);
 
@@ -206,6 +250,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
       {/* ── Intro Envelope Overlay (Visible during idle, playback, and glow fade-in) ── */}
       {showIntro && (
         <div
+          ref={overlayRef}
           onClick={phase === "idle" ? handleOpen : undefined}
           onKeyDown={
             phase === "idle"
@@ -217,28 +262,41 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                 }
               : undefined
           }
+          onTouchMove={(e) => {
+            // Prevent any background scrolling or browser toolbar movements during intro
+            if (e.cancelable) e.preventDefault();
+          }}
           role={phase === "idle" ? "button" : undefined}
           tabIndex={phase === "idle" ? 0 : undefined}
           aria-label="Tap the seal to open the wedding invitation"
           style={{
             position: "fixed",
-            inset: 0,
-            width: "100vw",
-            height: "100vh",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: "100%",
+            height: "100%",
             zIndex: 99998,
             overflow: "hidden",
             backgroundColor: "#f7f4ed",
             cursor: phase === "idle" ? "pointer" : "default",
+            touchAction: "none",
+            overscrollBehavior: "none",
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
         >
-          {/* ── Stage: cover-fit container accurately filling both screen types ── */}
+          {/* ── Stage: cover-fit container accurately filling both screen types with zero blank space ── */}
           <div
             style={{
               position: "absolute",
               left: "50%",
               top: "50%",
-              width: stageW || "100vw",
-              height: stageH || "100vh",
+              width: stageW ? `${stageW}px` : "100%",
+              height: stageH ? `${stageH}px` : "100%",
+              minWidth: "100%",
+              minHeight: "100%",
               transform: "translate(-50%, -50%)",
               overflow: "hidden",
               backgroundColor: "#f7f4ed",
@@ -354,7 +412,7 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
                     fontFamily: "Cormorant, Georgia, serif",
                     fontSize: isMobile ? "14px" : "25px",
                     fontWeight: 500,
-                    letterSpacing: "0.50em",
+                    letterSpacing: "0.25em",
                     textTransform: "uppercase",
                     color: "#4f311370",
                     textShadow: "0 1px 1px rgba(145, 100, 52, 0.34)",
@@ -375,7 +433,12 @@ export function IntroEnvelope({ data }: IntroEnvelopeProps) {
           className="royal-gold-glow-veil"
           style={{
             position: "fixed",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: "100%",
+            height: "100%",
             zIndex: 99999,
             pointerEvents: "none",
             overflow: "hidden",

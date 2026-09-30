@@ -601,20 +601,20 @@
 
 @media (max-width: 760px) {
   .film-audio-toggle {
-    bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)) !important;
-    right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px)) !important;
-    padding: 6px 13px !important;
-    font-size: 10px !important;
-    gap: 6px !important;
+    bottom: max(26px, calc(env(safe-area-inset-bottom, 0px) + 20px)) !important;
+    right: max(16px, calc(env(safe-area-inset-right, 0px) + 14px)) !important;
+    padding: 7px 14px !important;
+    font-size: 11px !important;
+    gap: 7px !important;
   }
 }
 
 @media (max-width: 360px) {
   .film-audio-toggle {
-    bottom: max(14px, calc(env(safe-area-inset-bottom, 0px) + 10px)) !important;
+    bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px)) !important;
     right: max(12px, calc(env(safe-area-inset-right, 0px) + 10px)) !important;
-    padding: 5px 11px !important;
-    font-size: 9.5px !important;
+    padding: 6px 12px !important;
+    font-size: 10px !important;
   }
 }
 
@@ -742,8 +742,8 @@
 /* Distinct mobile styling tailored for smartphone screens */
 @media (max-width: 760px) {
   .film-audio-hint {
-    bottom: max(62px, calc(env(safe-area-inset-bottom, 0px) + 56px)) !important;
-    right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px)) !important;
+    bottom: max(78px, calc(env(safe-area-inset-bottom, 0px) + 72px)) !important;
+    right: max(16px, calc(env(safe-area-inset-right, 0px) + 14px)) !important;
     padding: 8px 16px !important;
     font-size: 12px !important;
     border-radius: 22px !important;
@@ -753,7 +753,7 @@
     font-size: 11.5px !important;
   }
   .film-audio-hint .hint-arrow {
-    right: 32px !important;
+    right: 46px !important;
     bottom: -6px !important;
     border-left-width: 6px !important;
     border-right-width: 6px !important;
@@ -770,14 +770,14 @@
 
 @media (max-width: 360px) {
   .film-audio-hint {
-    bottom: max(58px, calc(env(safe-area-inset-bottom, 0px) + 52px)) !important;
+    bottom: max(70px, calc(env(safe-area-inset-bottom, 0px) + 64px)) !important;
     right: max(12px, calc(env(safe-area-inset-right, 0px) + 10px)) !important;
     font-size: 11px !important;
     padding: 7px 14px !important;
     border-radius: 20px !important;
   }
   .film-audio-hint .hint-arrow {
-    right: 26px !important;
+    right: 40px !important;
   }
 }
 
