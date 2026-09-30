@@ -95,6 +95,7 @@ export const defaultWeddingData: WeddingData = {
   "invitationEyebrow": "IN THE PRESENCE OF LOVE & TRADITION",
   "invitationHeading": "You're invited",
   "invitationSubtitle": "Together with our families,\nwe invite you to celebrate the wedding of",
-  "audioUrl": "/Intro/WhatsApp Video 2026-09-28 at 3.19.00 AM.mp4",
-  "enableIntroAnimation": true
+  "audioUrl": "/Audio/pesum-mazhai(trimmed).mp3",
+  "enableIntroAnimation": true,
+  "enableMusic": true
 };

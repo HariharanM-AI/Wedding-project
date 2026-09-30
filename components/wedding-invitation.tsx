@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { ArrowDown, CalendarDays, ArrowUpRight, MapPin, Sparkles } from "lucide-react";
+import { ArrowDown, CalendarDays, ArrowUpRight, MapPin, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Celebration, stageState, SCENE_EVENT, SHOWER_EVENT, BLESSED_EVENT } from "@/app/celebration";
 import { WeddingData } from "@/lib/types/wedding";
@@ -777,9 +777,250 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
   );
   const currentEvent = typeof event === "number" && activeEvents[event] ? activeEvents[event] : null;
 
+  // Customized background audio management
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const activeAudioUrl = data.audioUrl || defaultWeddingData.audioUrl || "/Audio/pesum-mazhai(trimmed).mp3";
+
+  // Trigger timing: when intro is enabled, only reveal floating audio controls after seal click ("Tap to open")
+  const [hasIntroStarted, setHasIntroStarted] = useState(() => data.enableIntroAnimation === false);
+
+  useEffect(() => {
+    if (data.enableIntroAnimation === false) {
+      setHasIntroStarted(true);
+    }
+  }, [data.enableIntroAnimation]);
+
+  useEffect(() => {
+    const handleIntroTrigger = () => {
+      setHasIntroStarted(true);
+    };
+
+    window.addEventListener("wedding:intro:opened", handleIntroTrigger);
+    window.addEventListener("wedding:audio:play", handleIntroTrigger);
+    window.addEventListener("intro:complete", handleIntroTrigger);
+
+    return () => {
+      window.removeEventListener("wedding:intro:opened", handleIntroTrigger);
+      window.removeEventListener("wedding:audio:play", handleIntroTrigger);
+      window.removeEventListener("intro:complete", handleIntroTrigger);
+    };
+  }, []);
+
+  // Gentle guidance notification to inform users where to pause/control music
+  const [showAudioHint, setShowAudioHint] = useState(false);
+  const audioHintTriggeredRef = useRef(false);
+  const hintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isPlayingAudio && !audioHintTriggeredRef.current) {
+      audioHintTriggeredRef.current = true;
+      setShowAudioHint(true);
+
+      if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
+      hintTimeoutRef.current = setTimeout(() => {
+        setShowAudioHint(false);
+      }, 4300);
+    }
+  }, [isPlayingAudio]);
+
+  useEffect(() => {
+    return () => {
+      if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
+    };
+  }, []);
+
+  const dismissAudioHint = () => {
+    if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
+    setShowAudioHint(false);
+  };
+
+  // 1. Listen for explicit play triggers (e.g. from IntroEnvelope "Tap to open")
+  useEffect(() => {
+    const handleStartAudio = () => {
+      if (data.enableMusic === false) return;
+      const audio = audioRef.current || (document.getElementById("wedding-soundtrack") as HTMLAudioElement | null);
+      if (audio && activeAudioUrl) {
+        if (!audio.src || audio.src !== activeAudioUrl) {
+          audio.src = activeAudioUrl;
+        }
+        audio
+          .play()
+          .then(() => setIsPlayingAudio(true))
+          .catch((err) => {
+            console.warn("Audio playback notice:", err);
+          });
+      }
+    };
+
+    window.addEventListener("wedding:audio:play", handleStartAudio);
+    return () => window.removeEventListener("wedding:audio:play", handleStartAudio);
+  }, [activeAudioUrl, data.enableMusic]);
+
+  // 2. When Intro is DISABLED (intro off & music on), automatically start audio on load or on first user interaction (touch/click/scroll)
+  useEffect(() => {
+    if (data.enableMusic === false || !activeAudioUrl) return;
+
+    // If intro animation is enabled, IntroEnvelope handles audio on "Tap to open"
+    if (data.enableIntroAnimation !== false) return;
+
+    let cleanupListeners: (() => void) | null = null;
+
+    const startAudioWhenIntroOff = () => {
+      const audio = audioRef.current || (document.getElementById("wedding-soundtrack") as HTMLAudioElement | null);
+      if (!audio) return;
+
+      if (activeAudioUrl && (!audio.src || audio.src !== activeAudioUrl)) {
+        audio.src = activeAudioUrl;
+      }
+
+      // Try autoplaying immediately (works if browser allows, e.g. after reload or user has interacted)
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlayingAudio(true);
+          })
+          .catch(() => {
+            // Autoplay blocked by browser policy without user gesture:
+            // Unlock on the very first touch, pointer down, click, or scroll anywhere on the invitation
+            const unlockOnFirstGesture = () => {
+              const el = audioRef.current || (document.getElementById("wedding-soundtrack") as HTMLAudioElement | null);
+              if (el) {
+                if (el.readyState === 0) el.load();
+                el.play()
+                  .then(() => setIsPlayingAudio(true))
+                  .catch(() => {});
+              }
+              removeGestureListeners();
+            };
+
+            const removeGestureListeners = () => {
+              window.removeEventListener("pointerdown", unlockOnFirstGesture);
+              window.removeEventListener("touchstart", unlockOnFirstGesture);
+              window.removeEventListener("click", unlockOnFirstGesture);
+              window.removeEventListener("scroll", unlockOnFirstGesture);
+            };
+
+            cleanupListeners = removeGestureListeners;
+
+            window.addEventListener("pointerdown", unlockOnFirstGesture, { once: true, passive: true });
+            window.addEventListener("touchstart", unlockOnFirstGesture, { once: true, passive: true });
+            window.addEventListener("click", unlockOnFirstGesture, { once: true, passive: true });
+            window.addEventListener("scroll", unlockOnFirstGesture, { once: true, passive: true });
+          });
+      }
+    };
+
+    // Small delay to ensure audio element is mounted in DOM
+    const timer = setTimeout(startAudioWhenIntroOff, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (cleanupListeners) cleanupListeners();
+    };
+  }, [data.enableIntroAnimation, data.enableMusic, activeAudioUrl]);
+
+  // 3. Keep audio element in sync when audioUrl changes
+  useEffect(() => {
+    if (audioRef.current && activeAudioUrl && audioRef.current.src !== activeAudioUrl) {
+      audioRef.current.src = activeAudioUrl;
+      audioRef.current.load();
+    }
+  }, [activeAudioUrl]);
+
   return (
     <div ref={root} id="invitation-top" className={`invitation-film ${ready ? "ready" : ""} ${reduced ? "reduced" : ""}`}>
       {data.enableIntroAnimation !== false && <IntroEnvelope data={data} />}
+
+      {/* Customized background audio element configured in the admin portal */}
+      {data.enableMusic !== false && activeAudioUrl && (
+        <audio
+          ref={audioRef}
+          id="wedding-soundtrack"
+          src={activeAudioUrl}
+          loop
+          preload="auto"
+          playsInline
+          onPlay={() => setIsPlayingAudio(true)}
+          onPause={() => setIsPlayingAudio(false)}
+          onEnded={() => setIsPlayingAudio(false)}
+        />
+      )}
+
+      {/* Floating audio control guidance hint ("Tap to pause music") - triggers only after clicking the seal */}
+      {data.enableMusic !== false && activeAudioUrl && showAudioHint && hasIntroStarted && (
+        <div
+          role="status"
+          aria-live="polite"
+          onClick={(e) => {
+            e.stopPropagation();
+            dismissAudioHint();
+          }}
+          onAnimationEnd={dismissAudioHint}
+          className="film-audio-hint"
+          title="Tap to dismiss"
+        >
+          <span className="hint-sparkle" aria-hidden="true">✦</span>
+          <span className="hint-text">Tap to pause music</span>
+          <span className="hint-arrow" aria-hidden="true" />
+        </div>
+      )}
+
+      {/* Floating transparent audio management button in bottom-right corner - visible only after clicking the seal */}
+      {data.enableMusic !== false && activeAudioUrl && hasIntroStarted && (
+        <button
+          type="button"
+          onClick={async (e) => {
+            e.stopPropagation();
+            dismissAudioHint();
+            const audio = audioRef.current || (document.getElementById("wedding-soundtrack") as HTMLAudioElement | null);
+            if (!audio) return;
+            if (isPlayingAudio && !audio.paused) {
+              audio.pause();
+              setIsPlayingAudio(false);
+            } else {
+              try {
+                if (activeAudioUrl && (audio.readyState === 0 || !audio.src || audio.src !== activeAudioUrl)) {
+                  audio.src = activeAudioUrl;
+                  audio.load();
+                }
+                await audio.play();
+                setIsPlayingAudio(true);
+              } catch (err) {
+                console.warn("Manual audio play error, retrying with load:", err);
+                try {
+                  audio.load();
+                  await audio.play();
+                  setIsPlayingAudio(true);
+                } catch (retryErr) {
+                  console.error("Audio playback failed:", retryErr);
+                }
+              }
+            }
+          }}
+          className={`film-audio-toggle ${isPlayingAudio ? "is-playing" : "is-paused"}`}
+          aria-label={isPlayingAudio ? "Mute soundtrack" : "Play soundtrack"}
+        >
+          {/* Animated audio waves */}
+          <span className={`audio-equalizer ${isPlayingAudio ? "playing" : "paused"}`} aria-hidden="true">
+            <span className="audio-bar bar-1" />
+            <span className="audio-bar bar-2" />
+            <span className="audio-bar bar-3" />
+            <span className="audio-bar bar-4" />
+          </span>
+
+          {/* Speaker icon */}
+          {isPlayingAudio ? (
+            <Volume2 size={13} style={{ color: "#8a6d45" }} />
+          ) : (
+            <VolumeX size={13} style={{ color: "#9a8376" }} />
+          )}
+
+          {/* Label */}
+          <span>{isPlayingAudio ? "Sound On" : "Sound Off"}</span>
+        </button>
+      )}
       <div className="film-loader" aria-hidden={ready}>
         <span className="loader-monogram">{(data.monogram || "S&J").toUpperCase()}</span>
         <div />
@@ -796,7 +1037,7 @@ export function WeddingInvitation({ initialData }: { initialData?: WeddingData }
 
       <Dialog
         open={event !== null}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           if (!open) setEvent(null);
         }}
       >

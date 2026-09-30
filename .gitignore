@@ -47,3 +47,16 @@ next-env.d.ts
 
 # local build caches
 *.tsbuildinfo
+
+# Scratch files and temporary test outputs
+/scripts/*.png
+/public/intro_frame_*.png
+/public/test_*.png
+/public/intro_pre_click.png
+/public/video_frames/
+/public/Intro/*_backup.png
+/public/Intro/*_old_palette.png
+/public/Intro/*_original.mp4
+/timelessgrace.html
+/user_pasted_page.html
+/Audio/

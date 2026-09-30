@@ -200,6 +200,7 @@ export async function saveWedding(wedding: WeddingData): Promise<{ success: bool
         final_subtext: wedding.finalSubtext || (wedding.brideName && wedding.groomName ? `Wedding of ${wedding.brideName} & ${wedding.groomName}` : ""),
         audio_url: wedding.audioUrl || "",
         enable_intro_animation: wedding.enableIntroAnimation ?? true,
+        enable_music: wedding.enableMusic ?? true,
         data: wedding,
         updated_at: wedding.updatedAt
       },

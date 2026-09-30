@@ -49,5 +49,6 @@ export interface WeddingData {
   finalSubtext?: string;
   audioUrl?: string; // Custom background wedding music URL
   enableIntroAnimation?: boolean; // Toggle for luxury envelope opening intro
+  enableMusic?: boolean; // Toggle for background music soundtrack (default: true)
   updatedAt?: string;
 }
